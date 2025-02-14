@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  xp            Int       @default(0)
+  level         Int       @default(1)
+  streak        Int       @default(0)
+  lastPlayed    DateTime?
+  progress      Progress[]
+  achievements  Achievement[]
+  scores        Score[]
+}
+
+model Topic {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String
+  lessons     Lesson[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Lesson {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  level       Int       @default(1)
+  topicId     String
+  topic       Topic     @relation(fields: [topicId], references: [id])
+  questions   Question[]
+  progress    Progress[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Question {
+  id          String    @id @default(cuid())
+  type        String    // multiple-choice, drag-drop, graph, order, fill-blank
+  content     Json      // Stores question data including answers, options, etc.
+  difficulty  Int       @default(1)
+  points      Int       @default(10)
+  lessonId    String
+  lesson      Lesson    @relation(fields: [lessonId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Progress {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  lessonId    String
+  lesson      Lesson    @relation(fields: [lessonId], references: [id])
+  completed   Boolean   @default(false)
+  score       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Achievement {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String
+  criteria    Json      // Stores achievement criteria
+  users       User[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Score {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  score       Int
+  type        String    // daily, weekly, all-time
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

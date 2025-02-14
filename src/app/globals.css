@@ -1,21 +1,192 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+ 
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 250 100% 99%;
+    --foreground: 250 50% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 250 50% 10%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 250 50% 10%;
+ 
+    --primary: 273 68% 35%;
+    --primary-foreground: 0 0% 100%;
+ 
+    --secondary: 273 59% 44%;
+    --secondary-foreground: 0 0% 100%;
+ 
+    --muted: 273 20% 95%;
+    --muted-foreground: 273 20% 45%;
+ 
+    --accent: 273 59% 44%;
+    --accent-foreground: 0 0% 100%;
+ 
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 273 30% 90%;
+    --input: 273 30% 90%;
+    --ring: 273 68% 35%;
+ 
+    --radius: 0.75rem;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+ 
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+ 
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+ 
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+ 
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Enable text selection in specific elements */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  /* Prevent zooming on iOS */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      font-size: 16px; /* Prevent auto-zoom on input focus */
+    }
+    /* Prevent double-tap zoom */
+    * {
+      touch-action: manipulation;
+    }
   }
 }
 
+/* Prevent pull-to-refresh and unwanted touch behaviors */
+html {
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent text selection during drag */
+.dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+@layer utilities {
+  /* Touch-specific utilities */
+  .touch-none {
+    touch-action: none;
+  }
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  .animate-in {
+    animation: animate-in 0.5s ease-out;
+  }
+  
+  .animate-out {
+    animation: animate-out 0.5s ease-in;
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes animate-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-md border border-white/20;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  }
+
+  .mobile-safe-area {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Prevent text selection during drag */
+  .dragging * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+
+  /* Better touch target sizes */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
