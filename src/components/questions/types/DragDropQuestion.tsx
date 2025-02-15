@@ -37,8 +37,10 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
 
   // Handle touch start
   const handleTouchStart = useCallback((item: QuestionItem) => {
-    setTouchedItem(getItemContent(item))
+    setDraggedItem(getItemContent(item))
     soundManager.play('click')
+    // Prevent zooming
+    document.documentElement.style.touchAction = 'manipulation'
   }, [])
 
   // Handle drop

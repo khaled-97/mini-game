@@ -1,20 +1,20 @@
 'use client'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import questions from '@/data/questions'
+import { questions } from '@/data/questions'
 
 const topics = [
   {
     id: 'algebra',
     name: 'Algebra',
-    description: 'Learn equations, functions, and algebraic concepts',
+    description: 'Master equations, functions, and algebraic concepts through interactive exercises',
     icon: '∑',
     color: 'bg-blue-500'
   },
   {
     id: 'geometry',
     name: 'Geometry',
-    description: 'Explore shapes, areas, and spatial relationships',
+    description: 'Learn shapes, areas, and spatial relationships through hands-on practice',
     icon: '△',
     color: 'bg-green-500'
   },
@@ -41,8 +41,8 @@ const topics = [
   },
   {
     id: 'logic',
-    name: 'Logic',
-    description: 'Practice logical reasoning and problem solving',
+    name: 'Logic & Patterns',
+    description: 'Develop logical thinking and pattern recognition skills',
     icon: '⟹',
     color: 'bg-indigo-500'
   }
@@ -52,16 +52,26 @@ export default function TopicsPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-primary mb-8">Topics</h1>
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-3xl font-bold text-primary mb-8"
+        >
+          Choose a Topic
+        </motion.h1>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {topics.map((topic, index) => {
             const topicQuestions = questions[topic.id] || []
             const hasQuestions = topicQuestions.length > 0
+            const maxDifficulty = hasQuestions 
+              ? Math.max(...topicQuestions.map(q => q.difficulty))
+              : 0
 
             return (
               <Link 
                 key={topic.id}
-                href={hasQuestions ? `/lessons/${topic.id}-1` : '#'}
+                href={hasQuestions ? `/practice/${topic.id}` : '#'}
                 className={!hasQuestions ? 'cursor-not-allowed opacity-50' : ''}
               >
                 <motion.div
@@ -83,7 +93,7 @@ export default function TopicsPage() {
                       <p className="text-muted-foreground text-sm mb-4">
                         {topic.description}
                       </p>
-                      {hasQuestions && (
+                      {hasQuestions ? (
                         <div className="flex items-center gap-4">
                           <div className="text-sm text-muted-foreground">
                             {topicQuestions.length} questions
@@ -93,7 +103,7 @@ export default function TopicsPage() {
                               <div
                                 key={level}
                                 className={`w-2 h-2 rounded-full ${
-                                  topicQuestions.some(q => q.difficulty >= level)
+                                  level <= maxDifficulty
                                     ? 'bg-primary'
                                     : 'bg-gray-200'
                                 }`}
@@ -101,8 +111,7 @@ export default function TopicsPage() {
                             ))}
                           </div>
                         </div>
-                      )}
-                      {!hasQuestions && (
+                      ) : (
                         <div className="text-sm text-muted-foreground">
                           Coming soon
                         </div>

@@ -1,6 +1,6 @@
 import { validateQuestions } from '../utils/validateQuestions'
 import { Question } from '@/types/question'
-import questions from '../data/questions'
+import { questions } from '../data/questions'
 
 // Get all questions from all topics
 const allQuestions: Question[] = Object.values(questions).reduce<Question[]>(

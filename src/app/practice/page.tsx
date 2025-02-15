@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PracticeMode from '@/components/questions/PracticeMode'
-import questions from '@/data/questions'
+import { questions } from '@/data/questions'
 import { Question } from '@/types/question'
 
 // Helper function to flatten questions from all topics

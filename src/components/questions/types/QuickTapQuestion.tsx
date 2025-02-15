@@ -10,6 +10,7 @@ interface Props {
   question: QuickTapQuestionType
   onAnswer: (answer: { correct: boolean; answer: string[] }) => void
   onNext: () => void
+  onSkip?: () => void
 }
 
 export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) {

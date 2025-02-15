@@ -27,6 +27,7 @@ interface Props {
   question: StepOrderQuestionType
   onAnswer: (answer: { correct: boolean; answer: string[] }) => void
   onNext: () => void
+  onSkip?: () => void
 }
 
 interface SortableStepProps {

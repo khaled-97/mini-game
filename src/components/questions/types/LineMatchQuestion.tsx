@@ -10,6 +10,7 @@ interface Props {
   question: LineMatchQuestionType
   onAnswer: (answer: { correct: boolean; answer: string[] }) => void
   onNext: () => void
+  onSkip?: () => void
 }
 
 interface Connection {

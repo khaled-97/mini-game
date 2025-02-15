@@ -6,7 +6,7 @@ import type { Question, QuestionResponse } from '@/types/question'
 import QuestionComponent from '@/components/questions/QuestionComponent'
 import useGameStore from '@/store/useGameStore'
 import { soundManager } from '@/utils/soundManager'
-import questions from '@/data/questions'
+import {questions} from '@/data/questions'
 import { useParams } from 'next/navigation'
 
 // Helper function to get questions for a specific lesson

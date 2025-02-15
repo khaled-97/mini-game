@@ -27,6 +27,7 @@ interface Props {
   question: OrderQuestionType
   onAnswer: (answer: { correct: boolean; answer: string[] }) => void
   onNext: () => void
+  onSkip?: () => void
 }
 
 interface SortableItemProps {

@@ -8,6 +8,7 @@ interface Props {
   question: TypeInQuestionType
   onAnswer: (answer: { correct: boolean; answer: string[] }) => void
   onNext: () => void
+  onSkip?: () => void
 }
 
 export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
