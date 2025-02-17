@@ -112,21 +112,25 @@ export default function FillBlankQuestion({ question, onAnswer, onNext }: Props)
     const blank = question.blanks.find(b => b.id === blankId)
     if (!blank) return false
 
-    // Check against main answer and acceptable alternatives
-    const mainAnswer = blank.answer.toLowerCase()
+    // Normalize answers by trimming whitespace and converting to lowercase
+    const mainAnswer = blank.answer.trim().toLowerCase()
     const userAnswer = answer.trim().toLowerCase()
     
-    if (userAnswer === mainAnswer) return true
-
-    // Check acceptable alternatives if they exist
-    if (blank.acceptableAnswers) {
+    // Check if answer is empty or doesn't match the main answer
+    if (!userAnswer || userAnswer !== mainAnswer) {
+      // If no acceptable answers or answer doesn't match any of them, it's wrong
+      if (!blank.acceptableAnswers || !blank.acceptableAnswers.length) {
+        return false
+      }
+      
+      // Check against acceptable answers
       return blank.acceptableAnswers.some(alt => 
-        userAnswer === alt.toLowerCase()
+        userAnswer === alt.trim().toLowerCase()
       )
     }
 
-    return false
-  }, [question.blanks])
+    return true
+  }, [])
 
   const handleSubmit = useCallback(() => {
     // Check if all blanks are filled
@@ -136,10 +140,14 @@ export default function FillBlankQuestion({ question, onAnswer, onNext }: Props)
       return
     }
 
-    // Check answers
-    const correct = question.blanks.every(blank => 
-      isAnswerCorrect(blank.id, answers[blank.id])
-    )
+    // Check each answer individually
+    const results = question.blanks.map(blank => ({
+      id: blank.id,
+      correct: isAnswerCorrect(blank.id, answers[blank.id])
+    }))
+
+    // All answers must be correct
+    const correct = results.every(result => result.correct)
 
     setIsCorrect(correct)
     setHasSubmitted(true)

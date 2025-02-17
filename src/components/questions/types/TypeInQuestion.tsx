@@ -26,13 +26,24 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
   }, [])
 
   const validateAnswer = useCallback((input: string): boolean => {
+    // Normalize input and answers
+    const normalizeValue = (value: string) => {
+      let normalized = value.trim()
+      if (!question.caseSensitive) {
+        normalized = normalized.toLowerCase()
+      }
+      // Remove extra spaces
+      normalized = normalized.replace(/\s+/g, ' ')
+      return normalized
+    }
+
     if (!question.validation) {
       // Simple string comparison if no validation rules
-      const normalizedInput = question.caseSensitive ? input : input.toLowerCase()
+      const normalizedInput = normalizeValue(input)
       const correctAnswers = [
         question.correctAnswer,
         ...(question.acceptableAnswers || []),
-      ].map(ans => question.caseSensitive ? ans : ans.toLowerCase())
+      ].map(ans => normalizeValue(ans))
       return correctAnswers.includes(normalizedInput)
     }
 
@@ -56,11 +67,37 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
           return regex.test(input)
         }
         case 'formula': {
-          // For formula validation, we'll compare the normalized form
-          // Remove all whitespace and convert to lowercase
-          const normalizedInput = input.replace(/\s+/g, '').toLowerCase()
-          const normalizedCorrect = question.correctAnswer.replace(/\s+/g, '').toLowerCase()
-          return normalizedInput === normalizedCorrect
+          // For formula validation, normalize both input and correct answer
+          const normalizeFormula = (formula: string) => {
+            return formula
+              .replace(/\s+/g, '') // Remove all whitespace
+              .toLowerCase()
+              .replace(/\^/g, '**') // Convert ^ to ** for power
+              .replace(/[×*]/g, '*') // Normalize multiplication
+              .replace(/÷/g, '/') // Normalize division
+              .replace(/(\d)([a-z])/g, '$1*$2') // Add * between number and variable
+              .replace(/([a-z])(\d)/g, '$1*$2') // Add * between variable and number
+              .replace(/\(\)/g, '') // Remove empty parentheses
+              .replace(/\(\+/g, '(') // Remove + after opening parenthesis
+              .replace(/\+\-/g, '-') // Normalize +- to just -
+              .replace(/\-\+/g, '-') // Normalize -+ to just -
+              .replace(/\-\-/g, '+') // Convert -- to +
+          }
+
+          const normalizedInput = normalizeFormula(input)
+          const normalizedCorrect = normalizeFormula(question.correctAnswer)
+
+          // Check main answer
+          if (normalizedInput === normalizedCorrect) return true
+
+          // Check acceptable alternatives
+          if (question.acceptableAnswers) {
+            return question.acceptableAnswers.some(alt => 
+              normalizedInput === normalizeFormula(alt)
+            )
+          }
+
+          return false
         }
         default:
           return false

@@ -12,7 +12,6 @@ import FillBlankQuestion from './types/FillBlankQuestion'
 import LineMatchQuestion from './types/LineMatchQuestion'
 import QuickTapQuestion from './types/QuickTapQuestion'
 import TypeInQuestion from './types/TypeInQuestion'
-import StepOrderQuestion from './types/StepOrderQuestion'
 import GraphPlotQuestion from './types/GraphPlotQuestion'
 
 interface Props {
@@ -92,15 +91,6 @@ export default function QuestionComponent({ question, onAnswer, onNext, onSkip }
       case 'type-in':
         return (
           <TypeInQuestion
-            question={question}
-            onAnswer={onAnswer}
-            onNext={onNext}
-            onSkip={onSkip}
-          />
-        )
-      case 'step-order':
-        return (
-          <StepOrderQuestion
             question={question}
             onAnswer={onAnswer}
             onNext={onNext}

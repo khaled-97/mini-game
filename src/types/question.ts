@@ -1,6 +1,6 @@
 import { QuestionItem } from '@/utils/questionContent'
 
-export type QuestionType = 'multiple-choice' | 'drag-drop' | 'graph' | 'order' | 'fill-blank' | 'line-match' | 'quick-tap' | 'type-in' | 'step-order' | 'graph-plot'
+export type QuestionType = 'multiple-choice' | 'drag-drop' | 'graph' | 'order' | 'fill-blank' | 'line-match' | 'quick-tap' | 'type-in' | 'graph-plot'
 
 export interface BaseQuestion {
   id: string
@@ -48,9 +48,17 @@ export interface GraphQuestion extends BaseQuestion {
 export interface OrderQuestion extends BaseQuestion {
   type: 'order'
   question: string
-  numbers: number[]
-  correctOrder: 'ascending' | 'descending'
+  correctOrder: string[]
   explanation?: string
+  // For number ordering
+  numbers?: number[]
+  // For step ordering
+  initialEquation?: string
+  steps?: Array<{
+    text: string
+    equation: string
+    explanation?: string
+  }>
 }
 
 export interface FillBlankQuestion extends BaseQuestion {
@@ -103,19 +111,6 @@ export interface TypeInQuestion extends BaseQuestion {
   explanation?: string
 }
 
-export interface StepOrderQuestion extends BaseQuestion {
-  type: 'step-order'
-  question: string
-  initialEquation: string
-  steps: Array<{
-    text: string
-    equation: string
-    explanation?: string
-  }>
-  correctOrder: number[]
-  explanation?: string
-}
-
 export interface GraphPlotQuestion extends BaseQuestion {
   type: 'graph-plot'
   question: string
@@ -143,7 +138,6 @@ export type Question =
   | LineMatchQuestion
   | QuickTapQuestion
   | TypeInQuestion
-  | StepOrderQuestion
   | GraphPlotQuestion
 
 export interface QuestionResponse {

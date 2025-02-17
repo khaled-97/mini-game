@@ -108,6 +108,12 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
+body.dragging {
+  overflow: hidden;
+  height: 100%;
+  position: fixed;
+  width: 100%;
+}
 
 /* Prevent text selection during drag */
 .dragging * {

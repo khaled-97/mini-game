@@ -3,8 +3,7 @@ import {
   MultipleChoiceQuestion,
   LineMatchQuestion,
   QuickTapQuestion,
-  OrderQuestion,
-  StepOrderQuestion
+  OrderQuestion
 } from '@/types/question'
 import { QuestionItem, isRichContent } from '@/utils/questionContent'
 import { shuffleArray } from './shuffleArray'
@@ -24,10 +23,6 @@ function isQuickTap(q: Question): q is QuickTapQuestion {
 
 function isOrder(q: Question): q is OrderQuestion {
   return q.type === 'order'
-}
-
-function isStepOrder(q: Question): q is StepOrderQuestion {
-  return q.type === 'step-order'
 }
 
 // Get content from QuestionItem
@@ -102,34 +97,51 @@ function shuffleQuickTap(question: QuickTapQuestion): QuickTapQuestion {
   }
 }
 
-// Shuffle order question numbers
+// Shuffle order question items while preserving correct order
 function shuffleOrder(question: OrderQuestion): OrderQuestion {
-  return {
-    ...question,
-    numbers: shuffleArray([...question.numbers])
+  if (question.numbers) {
+    // Number ordering
+    const numbers = [...question.numbers]
+    const correctOrder = [...question.correctOrder]
+    const shuffledNumbers = shuffleArray(numbers)
+
+    // Create mapping of old indices to new indices
+    const indexMap = numbers.reduce((map, num, index) => {
+      map[index] = shuffledNumbers.indexOf(num)
+      return map
+    }, {} as Record<number, number>)
+
+    // Update correctOrder to match new indices
+    const newCorrectOrder = correctOrder.map(index => String(indexMap[parseInt(index)]))
+
+    return {
+      ...question,
+      numbers: shuffledNumbers,
+      correctOrder: newCorrectOrder
+    }
+  } else if (question.steps) {
+    // Step ordering
+    const steps = [...question.steps]
+    const correctOrder = [...question.correctOrder]
+    const shuffledSteps = shuffleArray(steps)
+
+    // Create mapping of old indices to new indices
+    const indexMap = steps.reduce((map, step, index) => {
+      map[index] = shuffledSteps.indexOf(step)
+      return map
+    }, {} as Record<number, number>)
+
+    // Update correctOrder to match new indices
+    const newCorrectOrder = correctOrder.map(index => String(indexMap[parseInt(index)]))
+
+    return {
+      ...question,
+      steps: shuffledSteps,
+      correctOrder: newCorrectOrder
+    }
   }
-}
 
-// Shuffle step order steps while preserving correct order
-function shuffleStepOrder(question: StepOrderQuestion): StepOrderQuestion {
-  const steps = [...question.steps]
-  const correctOrder = [...question.correctOrder]
-  const shuffledSteps = shuffleArray(steps)
-
-  // Create mapping of old indices to new indices
-  const indexMap = steps.reduce((map, step, index) => {
-    map[index] = shuffledSteps.indexOf(step)
-    return map
-  }, {} as Record<number, number>)
-
-  // Update correctOrder to match new indices
-  const newCorrectOrder = correctOrder.map(index => indexMap[index])
-
-  return {
-    ...question,
-    steps: shuffledSteps,
-    correctOrder: newCorrectOrder
-  }
+  return question
 }
 
 // Main function to shuffle all questions
@@ -142,7 +154,6 @@ export function shuffleQuestions(questions: Record<string, Question[]>): Record<
       if (isLineMatch(q)) return shuffleLineMatch(q)
       if (isQuickTap(q)) return shuffleQuickTap(q)
       if (isOrder(q)) return shuffleOrder(q)
-      if (isStepOrder(q)) return shuffleStepOrder(q)
       return q
     })
   }

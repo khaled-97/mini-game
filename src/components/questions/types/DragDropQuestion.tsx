@@ -5,6 +5,20 @@ import { DragDropQuestion as DragDropQuestionType } from '@/types/question'
 import { isRichContent, QuestionItem } from '@/utils/questionContent'
 import RichContent from '../RichContent'
 import { soundManager } from '@/utils/soundManager'
+import {
+  DndContext,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  MouseSensor,
+  TouchSensor,
+  DragStartEvent,
+  DragEndEvent,
+  UniqueIdentifier,
+  useDraggable,
+  useDroppable,
+  closestCenter,
+} from '@dnd-kit/core'
 
 interface Props {
   question: DragDropQuestionType
@@ -17,83 +31,137 @@ function getItemContent(item: QuestionItem): string {
   return isRichContent(item) ? item.content : item
 }
 
+interface DraggableItemProps {
+  item: QuestionItem
+  isActive: boolean
+  hasSubmitted: boolean
+}
+
+function DraggableItem({ item, isActive, hasSubmitted }: DraggableItemProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: getItemContent(item),
+    disabled: hasSubmitted,
+  })
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className={`p-4 rounded-lg border-2 text-center cursor-grab active:cursor-grabbing touch-manipulation
+        ${hasSubmitted ? 'border-gray-200' : 'border-primary'}
+        ${isDragging || isActive ? 'opacity-50 border-primary bg-primary/5 shadow-lg' : ''}
+      `}
+      style={{
+        transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+      }}
+      {...attributes}
+      {...listeners}
+    >
+      <RichContent content={item} />
+    </motion.div>
+  )
+}
+
+interface DropZoneProps {
+  zone: DragDropQuestionType['dropZones'][0]
+  placedItem: string | null
+  isCorrect?: boolean
+  hasSubmitted: boolean
+  is3x3Grid?: boolean
+}
+
+function DropZone({ zone, placedItem, isCorrect, hasSubmitted, is3x3Grid }: DropZoneProps) {
+  const { setNodeRef } = useDroppable({
+    id: zone.id,
+    disabled: hasSubmitted,
+  })
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={is3x3Grid ? 'flex flex-col items-center' : 'flex items-center gap-4'}
+    >
+      {!is3x3Grid && (
+        <div className="flex-1 text-right">
+          {zone.placeholder}
+        </div>
+      )}
+      <div className={`${is3x3Grid ? 'w-20 h-20' : 'w-32 h-16'} rounded-lg border-2 flex items-center justify-center touch-manipulation select-none
+        ${hasSubmitted ? 'cursor-default' : placedItem ? 'cursor-pointer' : 'cursor-copy'}
+        ${!hasSubmitted && !placedItem ? 'border-dashed border-gray-300' : ''}
+        ${hasSubmitted ? (isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50') : 'border-gray-200'}
+      `}>
+        {placedItem ? (
+          <RichContent content={placedItem} />
+        ) : (
+          <span className="text-gray-400">Drop here</span>
+        )}
+      </div>
+      {is3x3Grid && zone.placeholder && (
+        <div className="mt-1 text-xs text-muted-foreground">
+          {zone.placeholder}
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }: Props) {
-  const [draggedItem, setDraggedItem] = useState<string | null>(null)
-  const [touchedItem, setTouchedItem] = useState<string | null>(null)
-  const [touchStartCoords, setTouchStartCoords] = useState<{ x: number; y: number } | null>(null)
   const [placedItems, setPlacedItems] = useState<Record<string, string>>({})
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
+
+  // Check if this is a 3x3 grid question
+  const is3x3Grid = question.dropZones.length === 9 && question.question.includes('3x3 grid')
 
   // Get available items (not yet placed)
   const availableItems = question.items.filter(
     item => !Object.values(placedItems).includes(getItemContent(item))
   )
 
-  // Handle drag start
-  const handleDragStart = useCallback((item: QuestionItem) => {
-    setDraggedItem(getItemContent(item))
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 0,
+        tolerance: 0,
+      },
+    })
+  )
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id)
     soundManager.play('click')
   }, [])
 
-  // Handle touch start
-  const handleTouchStart = useCallback((event: React.TouchEvent, item: QuestionItem) => {
-    event.preventDefault()
-    const touch = event.touches[0]
-    setTouchStartCoords({ x: touch.clientX, y: touch.clientY })
-    setTouchedItem(getItemContent(item))
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveId(null)
+
+    if (!over) return
+
+    setPlacedItems(prev => ({
+      ...prev,
+      [over.id as string]: active.id as string
+    }))
     soundManager.play('click')
+
+    // Vibrate on mobile devices
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50)
+    }
   }, [])
 
-  // Handle touch move
-  const handleTouchMove = useCallback((event: React.TouchEvent) => {
-    event.preventDefault()
-  }, [])
-
-  // Handle drop
-  const handleDrop = useCallback((zoneId: string) => {
-    if (draggedItem) {
-      setPlacedItems(prev => ({ ...prev, [zoneId]: draggedItem }))
-      setDraggedItem(null)
-      soundManager.play('click')
-
-      // Vibrate on mobile devices
-      if (window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(50)
-      }
-    }
-  }, [draggedItem])
-
-  // Handle touch end
-  const handleTouchEnd = useCallback((event: React.TouchEvent, zoneId: string) => {
-    event.preventDefault()
-    if (!touchedItem || !touchStartCoords) return
-
-    const touch = event.changedTouches[0]
-    const dropZoneElement = event.currentTarget as HTMLElement
-    const rect = dropZoneElement.getBoundingClientRect()
-
-    // Check if touch ended within the drop zone
-    if (
-      touch.clientX >= rect.left &&
-      touch.clientX <= rect.right &&
-      touch.clientY >= rect.top &&
-      touch.clientY <= rect.bottom
-    ) {
-      setPlacedItems(prev => ({ ...prev, [zoneId]: touchedItem }))
-      soundManager.play('click')
-      
-      // Vibrate on mobile devices
-      if (window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(50)
-      }
-    }
-
-    setTouchedItem(null)
-    setTouchStartCoords(null)
-  }, [touchedItem, touchStartCoords])
-
-  // Handle item removal
   const handleRemoveItem = useCallback((zoneId: string) => {
     if (hasSubmitted) return
     setPlacedItems(prev => {
@@ -104,7 +172,6 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
     soundManager.play('click')
   }, [hasSubmitted])
 
-  // Handle submit
   const handleSubmit = useCallback(() => {
     const correct = question.dropZones.every(zone => {
       const placedItem = placedItems[zone.id]
@@ -138,75 +205,59 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
           {question.question}
         </h2>
         <p className="text-muted-foreground">
-          Drag items to their correct positions or tap to select and place.
+          Drag items to their correct positions
         </p>
       </motion.div>
 
-      {/* Items */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
       >
-        {availableItems.map((item, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            draggable={!hasSubmitted}
-            onDragStart={() => handleDragStart(item)}
-            onTouchStart={(e) => handleTouchStart(e, item)}
-            onTouchMove={handleTouchMove}
-            className={`p-4 rounded-lg border-2 text-center cursor-grab active:cursor-grabbing touch-manipulation
-              ${hasSubmitted ? 'border-gray-200' : 'border-primary'}
-              ${draggedItem === getItemContent(item) ? 'opacity-50' : ''}
-              ${touchedItem === getItemContent(item) ? 'opacity-50' : ''}
-            `}
-          >
-            <RichContent content={item} />
-          </motion.div>
-        ))}
-      </motion.div>
+        {/* Items */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="grid grid-cols-2 sm:grid-cols-3 gap-4"
+        >
+          {availableItems.map((item, index) => (
+            <DraggableItem
+              key={index}
+              item={item}
+              isActive={getItemContent(item) === activeId}
+              hasSubmitted={hasSubmitted}
+            />
+          ))}
+        </motion.div>
 
-      {/* Drop Zones */}
-      <div className="space-y-4">
-        {question.dropZones.map((zone, index) => (
-          <motion.div
-            key={zone.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-4"
-          >
-            <div className="flex-1 text-right">
-              {zone.placeholder}
+        {/* Drop Zones */}
+        <div className={`mt-8 ${is3x3Grid ? 'grid grid-cols-3 gap-4 max-w-md mx-auto' : 'space-y-4'}`}>
+          {question.dropZones.map((zone) => {
+            const placedItem = placedItems[zone.id]
+            const correctItem = question.items[parseInt(zone.correctItemId.split('-')[1])]
+            return (
+              <DropZone
+                key={zone.id}
+                zone={zone}
+                placedItem={placedItem}
+                isCorrect={hasSubmitted ? placedItem === getItemContent(correctItem) : undefined}
+                hasSubmitted={hasSubmitted}
+                is3x3Grid={is3x3Grid}
+              />
+            )
+          })}
+        </div>
+
+        {/* Drag Overlay */}
+        <DragOverlay>
+          {activeId ? (
+            <div className="p-4 rounded-lg border-2 border-primary bg-white shadow-lg text-center">
+              <RichContent content={activeId as string} />
             </div>
-            <motion.div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => handleDrop(zone.id)}
-              onTouchEnd={(e) => handleTouchEnd(e, zone.id)}
-              onTouchMove={handleTouchMove}
-              onClick={() => handleRemoveItem(zone.id)}
-              className={`w-32 h-16 rounded-lg border-2 flex items-center justify-center touch-manipulation select-none
-                ${hasSubmitted ? 'cursor-default' : placedItems[zone.id] ? 'cursor-pointer' : 'cursor-copy'}
-                ${!hasSubmitted && !placedItems[zone.id] ? 'border-dashed border-gray-300' : ''}
-                ${hasSubmitted ? (
-                  placedItems[zone.id] === getItemContent(question.items[parseInt(zone.correctItemId.split('-')[1])])
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-red-500 bg-red-50'
-                ) : 'border-gray-200'}
-              `}
-            >
-              {placedItems[zone.id] ? (
-                <RichContent content={placedItems[zone.id]} />
-              ) : (
-                <span className="text-gray-400">Drop here</span>
-              )}
-            </motion.div>
-          </motion.div>
-        ))}
-      </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* Controls */}
       <div className="flex justify-center gap-4">
