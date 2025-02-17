@@ -5,6 +5,7 @@ import { LineMatchQuestion as LineMatchQuestionType } from '@/types/question'
 import { isRichContent } from '@/utils/questionContent'
 import RichContent from '../RichContent'
 import { soundManager } from '@/utils/soundManager'
+import { createShuffledPairs } from '@/utils/shuffleArray'
 
 interface Props {
   question: LineMatchQuestionType
@@ -30,8 +31,14 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
   const [isCorrect, setIsCorrect] = useState(false)
   const [mousePos, setMousePos] = useState<Point>({ x: 0, y: 0 })
   const [touchStartItem, setTouchStartItem] = useState<{ side: 'left' | 'right'; index: number } | null>(null)
+  const [hoveredRightItem, setHoveredRightItem] = useState<number | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Shuffle right items and store both items and their connections
+  const [shuffledState] = useState(() => 
+    createShuffledPairs(question.rightItems, question.correctConnections)
+  )
 
   // Draw connections
   useEffect(() => {
@@ -115,15 +122,47 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
   }, [activeConnection])
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault() // Prevent scrolling while drawing
     if (!activeConnection || !e.touches[0]) return
-    setMousePos({ x: e.touches[0].clientX, y: e.touches[0].clientY })
+    
+    const touch = e.touches[0]
+    setMousePos({ x: touch.clientX, y: touch.clientY })
+    
+    // Check if touch is over a right item
+    const elements = document.elementsFromPoint(touch.clientX, touch.clientY)
+    const rightItem = elements.find(el => el.hasAttribute('data-right-item'))
+    if (rightItem) {
+      const index = parseInt(rightItem.getAttribute('data-right-item') || '-1')
+      if (index !== -1) {
+        setHoveredRightItem(index)
+      }
+    } else {
+      setHoveredRightItem(null)
+    }
   }, [activeConnection])
 
+  const handleContainerTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+    setHoveredRightItem(null)
+    
+    if (activeConnection && hoveredRightItem !== null) {
+      const newConnection = { from: activeConnection.from, to: hoveredRightItem }
+      setConnections(prev => [...prev, newConnection])
+      setActiveConnection(null)
+      soundManager.play('click')
+      
+      // Vibrate on mobile devices
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(50)
+      }
+    }
+  }, [activeConnection, hoveredRightItem])
+
   const isConnectionCorrect = useCallback((connection: Connection) => {
-    return question.correctConnections.some(correct => 
+    return shuffledState.shuffledConnections.some(correct => 
       correct.from === connection.from && correct.to === connection.to
     )
-  }, [question.correctConnections])
+  }, [shuffledState.shuffledConnections])
 
   const handleLeftItemClick = useCallback((index: number) => {
     if (hasSubmitted) return
@@ -217,6 +256,7 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
         className="relative min-h-[400px]"
         onMouseMove={handleMouseMove}
         onTouchMove={handleTouchMove}
+        onTouchEnd={handleContainerTouchEnd}
       >
         <canvas
           ref={canvasRef}
@@ -235,9 +275,9 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
               onTouchEnd={() => handleTouchEnd('left', index)}
               onClick={() => handleLeftItemClick(index)}
               disabled={hasSubmitted}
-              className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left touch-manipulation
-                ${hasSubmitted ? 'cursor-default' : 'hover:border-primary hover:bg-primary/5'}
-                ${activeConnection?.from === index ? 'border-primary bg-primary/5' : 'border-gray-200'}
+              className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left touch-manipulation select-none
+                ${hasSubmitted ? 'cursor-default' : 'hover:border-primary hover:bg-primary/5 active:scale-[1.02]'}
+                ${activeConnection?.from === index ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-gray-200'}
                 disabled:cursor-default
               `}
             >
@@ -248,7 +288,7 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
 
         {/* Right Items */}
         <div className="absolute right-0 top-0 space-y-4 w-[45%]">
-          {question.rightItems.map((item, index) => (
+          {shuffledState.shuffledItems.map((item, index) => (
             <motion.button
               key={`right-${index}`}
               initial={{ opacity: 0, x: 20 }}
@@ -258,9 +298,9 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
               onTouchEnd={() => handleTouchEnd('right', index)}
               onClick={() => handleRightItemClick(index)}
               disabled={hasSubmitted}
-              className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left touch-manipulation
-                ${!hasSubmitted && activeConnection ? 'hover:border-primary hover:bg-primary/5' : ''}
-                ${connections.some(c => c.to === index) ? 'border-primary bg-primary/5' : 'border-gray-200'}
+              className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left touch-manipulation select-none
+                ${!hasSubmitted && activeConnection ? 'hover:border-primary hover:bg-primary/5 active:scale-[1.02]' : ''}
+                ${connections.some(c => c.to === index) || hoveredRightItem === index ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-gray-200'}
                 disabled:cursor-default
               `}
             >

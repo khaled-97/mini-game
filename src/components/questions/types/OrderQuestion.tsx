@@ -1,25 +1,24 @@
 'use client'
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OrderQuestion as OrderQuestionType } from '@/types/question'
 import { soundManager } from '@/utils/soundManager'
 import {
   DndContext,
-  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
-  MouseSensor,
-  TouchSensor,
-  DragStartEvent,
   DragEndEvent,
-  UniqueIdentifier,
-  useDraggable,
-  useDroppable,
 } from '@dnd-kit/core'
 import {
-  verticalListSortingStrategy,
-  SortableContext,
   arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
@@ -32,105 +31,94 @@ interface Props {
 
 interface SortableItemProps {
   id: string
-  number: number
+  value: number
   index: number
-  isCorrect?: boolean
-  hasSubmitted: boolean
 }
 
-function SortableItem({ id, number, index, isCorrect, hasSubmitted }: SortableItemProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id,
-    disabled: hasSubmitted,
-  })
+function SortableItem({ id, value, index }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 2 : 1,
+  }
 
   return (
     <motion.div
       ref={setNodeRef}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className={`p-4 bg-white rounded-lg border-2 transition-all duration-200 touch-manipulation
-        ${!hasSubmitted ? 'cursor-grab active:cursor-grabbing hover:border-primary hover:shadow-md' : ''}
-        ${hasSubmitted && isCorrect !== undefined ? (isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50') : 'border-gray-200'}
-        ${isDragging ? 'opacity-50' : 'opacity-100'}
-      `}
-      style={{
-        transform: CSS.Transform.toString(transform),
-      }}
+      style={style}
       {...attributes}
       {...listeners}
+      className={`p-4 rounded-lg border-2 mb-2 cursor-grab active:cursor-grabbing touch-manipulation select-none
+        ${isDragging ? 'border-primary bg-primary/5 shadow-lg' : 'border-gray-200 bg-white hover:border-primary/50'}
+      `}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-lg font-medium">{number}</span>
-        {hasSubmitted && (
-          <span className="text-xl">
-            {isCorrect ? '✓' : '✗'}
-          </span>
-        )}
+        <span className="text-lg">{value}</span>
+        <span className="text-gray-400">#{index + 1}</span>
       </div>
     </motion.div>
   )
 }
 
 export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
-  const [numbers, setNumbers] = useState<number[]>([])
+  const [items, setItems] = useState(question.numbers)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
 
-  // Initialize numbers in random order
-  useEffect(() => {
-    const shuffled = [...question.numbers].sort(() => Math.random() - 0.5)
-    setNumbers(shuffled)
-  }, [question.numbers])
-
-  // Configure sensors for both mouse and touch
   const sensors = useSensors(
-    useSensor(MouseSensor, {
+    useSensor(PointerSensor, {
       activationConstraint: {
         distance: 5,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 100,
+        delay: 250,
         tolerance: 5,
       },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   )
 
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveId(event.active.id)
-    soundManager.play('click')
-  }, [])
-
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event
-    setActiveId(null)
 
-    if (!over) return
-
-    if (active.id !== over.id) {
-      setNumbers((items) => {
-        const oldIndex = items.findIndex((_, i) => `item-${i}` === active.id)
-        const newIndex = items.findIndex((_, i) => `item-${i}` === over.id)
+    if (over && active.id !== over.id) {
+      setItems((items) => {
+        const oldIndex = items.indexOf(Number(active.id))
+        const newIndex = items.indexOf(Number(over.id))
+        soundManager.play('click')
         return arrayMove(items, oldIndex, newIndex)
       })
-      soundManager.play('click')
     }
   }, [])
 
   const handleSubmit = useCallback(() => {
-    const isAscending = question.correctOrder === 'ascending'
-    const sortedNumbers = [...numbers].sort((a, b) => isAscending ? a - b : b - a)
-    const correct = numbers.every((num, index) => num === sortedNumbers[index])
-
+    const orderedNumbers = [...items]
+    const correctOrder = question.correctOrder === 'ascending' 
+      ? [...question.numbers].sort((a, b) => a - b)
+      : [...question.numbers].sort((a, b) => b - a)
+    
+    const correct = orderedNumbers.every((num, index) => num === correctOrder[index])
+    
     setIsCorrect(correct)
     setHasSubmitted(true)
     onAnswer({
       correct,
-      answer: numbers.map(n => n.toString())
+      answer: orderedNumbers.map(String)
     })
     soundManager.play(correct ? 'correct' : 'incorrect')
 
@@ -138,7 +126,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
     if (window.navigator && window.navigator.vibrate) {
       window.navigator.vibrate(correct ? [100] : [50, 50, 50])
     }
-  }, [numbers, question.correctOrder, onAnswer])
+  }, [items, question, onAnswer])
 
   return (
     <div className="space-y-8">
@@ -152,53 +140,31 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
           {question.question}
         </h2>
         <p className="text-muted-foreground">
-          Drag the numbers to put them in {question.correctOrder} order
+          Drag and drop the numbers to {question.correctOrder === 'ascending' ? 'ascending' : 'descending'} order
         </p>
       </motion.div>
 
-      {/* Numbers List */}
+      {/* Sortable Items */}
       <DndContext
         sensors={sensors}
-        onDragStart={handleDragStart}
+        collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className="max-w-md mx-auto space-y-4">
-          <SortableContext
-            items={numbers.map((_, i) => `item-${i}`)}
-            strategy={verticalListSortingStrategy}
-          >
-            <AnimatePresence mode="popLayout">
-              {numbers.map((number, index) => {
-                const sortedNumbers = [...numbers].sort((a, b) => 
-                  question.correctOrder === 'ascending' ? a - b : b - a
-                )
-                const isNumberCorrect = hasSubmitted && number === sortedNumbers[index]
-
-                return (
-                  <SortableItem
-                    key={`item-${index}`}
-                    id={`item-${index}`}
-                    number={number}
-                    index={index}
-                    isCorrect={hasSubmitted ? isNumberCorrect : undefined}
-                    hasSubmitted={hasSubmitted}
-                  />
-                )
-              })}
-            </AnimatePresence>
-          </SortableContext>
-        </div>
-
-        {/* Drag Overlay */}
-        <DragOverlay>
-          {activeId ? (
-            <div className="p-4 bg-white rounded-lg border-2 border-primary shadow-lg">
-              <span className="text-lg font-medium">
-                {numbers[parseInt(activeId.toString().split('-')[1])]}
-              </span>
-            </div>
-          ) : null}
-        </DragOverlay>
+        <SortableContext
+          items={items.map(String)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="max-w-sm mx-auto">
+            {items.map((value, index) => (
+              <SortableItem
+                key={value}
+                id={String(value)}
+                value={value}
+                index={index}
+              />
+            ))}
+          </div>
+        </SortableContext>
       </DndContext>
 
       {/* Submit/Next Button */}
@@ -226,16 +192,35 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
         </motion.button>
       )}
 
-      {/* Explanation */}
-      {hasSubmitted && question.explanation && (
+      {/* Results */}
+      {hasSubmitted && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-4 rounded-lg text-center ${
+          className={`p-6 rounded-lg text-center ${
             isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
           }`}
         >
-          {question.explanation}
+          {isCorrect ? (
+            <p>Correct! {question.explanation}</p>
+          ) : (
+            <div>
+              <p className="mb-4">Not quite. The correct order is:</p>
+              <div className="flex justify-center gap-4">
+                {(question.correctOrder === 'ascending' 
+                  ? [...question.numbers].sort((a, b) => a - b)
+                  : [...question.numbers].sort((a, b) => b - a)
+                ).map((num, index) => (
+                  <div key={index} className="font-mono bg-white px-3 py-1 rounded border">
+                    {num}
+                  </div>
+                ))}
+              </div>
+              {question.explanation && (
+                <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
+              )}
+            </div>
+          )}
         </motion.div>
       )}
     </div>

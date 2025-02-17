@@ -102,7 +102,7 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
       <motion.h2
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-2xl font-semibold text-primary"
+        className="text-2xl font-semibold text-primary select-none"
       >
         {question.question}
       </motion.h2>
@@ -122,11 +122,11 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
             onKeyPress={handleKeyPress}
             disabled={hasSubmitted}
             placeholder={getPlaceholder(question)}
-            className={`w-full p-4 rounded-xl border-2 transition-all duration-200
-              ${hasSubmitted && isCorrect ? 'border-green-500 bg-green-50' : ''}
-              ${hasSubmitted && !isCorrect ? 'border-red-500 bg-red-50' : ''}
-              ${!hasSubmitted ? 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2' : ''}
-              disabled:cursor-not-allowed
+            className={`w-full p-5 rounded-xl border-2 transition-all duration-200 touch-manipulation text-lg
+              ${hasSubmitted && isCorrect ? 'border-green-500 bg-green-50 scale-[1.02]' : ''}
+              ${hasSubmitted && !isCorrect ? 'border-red-500 bg-red-50 scale-[1.02]' : ''}
+              ${!hasSubmitted ? 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 active:border-primary active:bg-primary/5' : ''}
+              disabled:cursor-not-allowed focus:outline-none
             `}
             step={question.validation?.type === 'number' ? 
               question.validation.precision ? 
@@ -135,12 +135,13 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
               : undefined}
             min={question.validation?.type === 'number' ? question.validation.min : undefined}
             max={question.validation?.type === 'number' ? question.validation.max : undefined}
+            inputMode={question.validation?.type === 'number' ? 'decimal' : 'text'}
           />
           {error && (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="absolute -bottom-6 left-0 text-sm text-red-500"
+              className="absolute -bottom-6 left-0 text-sm text-red-500 select-none"
             >
               {error}
             </motion.p>
@@ -156,7 +157,7 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleSubmit}
-          className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-full font-medium"
+          className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-full font-medium touch-manipulation select-none"
         >
           Check Answer
         </motion.button>
@@ -167,7 +168,7 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onNext}
-          className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-full font-medium"
+          className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-full font-medium touch-manipulation select-none"
         >
           Next Question
         </motion.button>
@@ -178,7 +179,7 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-4 rounded-lg ${
+          className={`p-6 rounded-lg select-none touch-manipulation ${
             isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
           }`}
         >
@@ -197,7 +198,7 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
 
       {/* Instructions */}
       {!hasSubmitted && (
-        <motion.p className="text-center text-sm text-muted-foreground">
+        <motion.p className="text-center text-sm text-muted-foreground select-none touch-manipulation">
           {getInstructions(question)}
         </motion.p>
       )}

@@ -16,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans ${inter.variable}`}>
+    <html lang="en" suppressHydrationWarning className="touch-manipulation">
+      <body className={`font-sans ${inter.variable} touch-manipulation`}>
         <Navbar />
         <main className="pt-16 md:pt-16">
           {children}

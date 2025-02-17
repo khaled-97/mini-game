@@ -61,11 +61,11 @@ function BlankInput({
         onKeyPress={handleKeyPress}
         disabled={hasSubmitted}
         data-blank-id={id}
-        className={`w-24 sm:w-32 p-2 text-center rounded-lg border-2 transition-all duration-200
-          ${!hasSubmitted ? 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2' : ''}
-          ${hasSubmitted && isCorrect ? 'border-green-500 bg-green-50' : ''}
-          ${hasSubmitted && !isCorrect ? 'border-red-500 bg-red-50' : ''}
-          disabled:cursor-not-allowed
+        className={`w-28 sm:w-36 p-3 text-center rounded-lg border-2 transition-all duration-200 touch-manipulation
+          ${!hasSubmitted ? 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 active:border-primary active:bg-primary/5' : ''}
+          ${hasSubmitted && isCorrect ? 'border-green-500 bg-green-50 scale-[1.02]' : ''}
+          ${hasSubmitted && !isCorrect ? 'border-red-500 bg-red-50 scale-[1.02]' : ''}
+          disabled:cursor-not-allowed text-lg
         `}
         placeholder={`Blank ${position + 1}`}
       />
@@ -193,7 +193,7 @@ export default function FillBlankQuestion({ question, onAnswer, onNext }: Props)
         <h2 className="text-2xl font-semibold text-primary mb-2">
           Fill in the blanks
         </h2>
-        <div className="flex flex-wrap items-center justify-center gap-2 text-lg">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-lg select-none touch-manipulation">
           {questionParts}
         </div>
       </motion.div>

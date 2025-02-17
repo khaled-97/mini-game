@@ -20,6 +20,7 @@ function getItemContent(item: QuestionItem): string {
 export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }: Props) {
   const [draggedItem, setDraggedItem] = useState<string | null>(null)
   const [touchedItem, setTouchedItem] = useState<string | null>(null)
+  const [touchStartCoords, setTouchStartCoords] = useState<{ x: number; y: number } | null>(null)
   const [placedItems, setPlacedItems] = useState<Record<string, string>>({})
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
@@ -36,11 +37,17 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
   }, [])
 
   // Handle touch start
-  const handleTouchStart = useCallback((item: QuestionItem) => {
-    setDraggedItem(getItemContent(item))
+  const handleTouchStart = useCallback((event: React.TouchEvent, item: QuestionItem) => {
+    event.preventDefault()
+    const touch = event.touches[0]
+    setTouchStartCoords({ x: touch.clientX, y: touch.clientY })
+    setTouchedItem(getItemContent(item))
     soundManager.play('click')
-    // Prevent zooming
-    document.documentElement.style.touchAction = 'manipulation'
+  }, [])
+
+  // Handle touch move
+  const handleTouchMove = useCallback((event: React.TouchEvent) => {
+    event.preventDefault()
   }, [])
 
   // Handle drop
@@ -58,18 +65,33 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
   }, [draggedItem])
 
   // Handle touch end
-  const handleTouchEnd = useCallback((zoneId: string) => {
-    if (touchedItem) {
-      setPlacedItems(prev => ({ ...prev, [zoneId]: touchedItem }))
-      setTouchedItem(null)
-      soundManager.play('click')
+  const handleTouchEnd = useCallback((event: React.TouchEvent, zoneId: string) => {
+    event.preventDefault()
+    if (!touchedItem || !touchStartCoords) return
 
+    const touch = event.changedTouches[0]
+    const dropZoneElement = event.currentTarget as HTMLElement
+    const rect = dropZoneElement.getBoundingClientRect()
+
+    // Check if touch ended within the drop zone
+    if (
+      touch.clientX >= rect.left &&
+      touch.clientX <= rect.right &&
+      touch.clientY >= rect.top &&
+      touch.clientY <= rect.bottom
+    ) {
+      setPlacedItems(prev => ({ ...prev, [zoneId]: touchedItem }))
+      soundManager.play('click')
+      
       // Vibrate on mobile devices
       if (window.navigator && window.navigator.vibrate) {
         window.navigator.vibrate(50)
       }
     }
-  }, [touchedItem])
+
+    setTouchedItem(null)
+    setTouchStartCoords(null)
+  }, [touchedItem, touchStartCoords])
 
   // Handle item removal
   const handleRemoveItem = useCallback((zoneId: string) => {
@@ -135,7 +157,8 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
             whileTap={{ scale: 0.95 }}
             draggable={!hasSubmitted}
             onDragStart={() => handleDragStart(item)}
-            onTouchStart={() => handleTouchStart(item)}
+            onTouchStart={(e) => handleTouchStart(e, item)}
+            onTouchMove={handleTouchMove}
             className={`p-4 rounded-lg border-2 text-center cursor-grab active:cursor-grabbing touch-manipulation
               ${hasSubmitted ? 'border-gray-200' : 'border-primary'}
               ${draggedItem === getItemContent(item) ? 'opacity-50' : ''}
@@ -162,9 +185,10 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
             <motion.div
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(zone.id)}
-              onTouchEnd={() => handleTouchEnd(zone.id)}
+              onTouchEnd={(e) => handleTouchEnd(e, zone.id)}
+              onTouchMove={handleTouchMove}
               onClick={() => handleRemoveItem(zone.id)}
-              className={`w-32 h-16 rounded-lg border-2 flex items-center justify-center touch-manipulation
+              className={`w-32 h-16 rounded-lg border-2 flex items-center justify-center touch-manipulation select-none
                 ${hasSubmitted ? 'cursor-default' : placedItems[zone.id] ? 'cursor-pointer' : 'cursor-copy'}
                 ${!hasSubmitted && !placedItems[zone.id] ? 'border-dashed border-gray-300' : ''}
                 ${hasSubmitted ? (

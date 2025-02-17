@@ -3,7 +3,11 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { GraphPlotQuestion as GraphPlotQuestionType } from '@/types/question'
 import { soundManager } from '@/utils/soundManager'
-import * as math from 'mathjs'
+import { 
+  normalizeMathExpression, 
+  evaluateMathExpression, 
+  formatMathExpression 
+} from '@/utils/mathExpressions'
 
 interface Props {
   question: GraphPlotQuestionType
@@ -126,7 +130,7 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
         let isFirstPoint = true
         for (let px = xMin; px <= xMax; px += 0.1) {
           try {
-            const py = evaluateFunction(userFunction, px)
+            const py = evaluateMathExpression(userFunction, px)
             if (typeof py === 'number' && !isNaN(py)) {
               const { x, y } = toCanvasCoords({ x: px, y: py }, canvas)
               if (isFirstPoint) {
@@ -181,16 +185,6 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
     drawGraph()
   }, [userFunction, points, hasSubmitted, drawGraph])
 
-  const evaluateFunction = useCallback((func: string, x: number): number => {
-    try {
-      // Replace ^ with ** for exponentiation
-      const expr = func.replace(/\^/g, '**')
-      return math.evaluate(expr, { x })
-    } catch (error) {
-      throw new Error('Invalid function')
-    }
-  }, [])
-
   const validateFunction = useCallback((func: string): boolean => {
     if (!func.trim()) return false
 
@@ -198,13 +192,13 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
       // Test a few points
       const testPoints = [-1, 0, 1]
       return testPoints.every(x => {
-        const y = evaluateFunction(func, x)
+        const y = evaluateMathExpression(func, x)
         return typeof y === 'number' && !isNaN(y)
       })
     } catch (error) {
       return false
     }
-  }, [evaluateFunction])
+  }, [])
 
   const handleSubmit = useCallback(() => {
     if (!validateFunction(userFunction)) {
@@ -217,7 +211,7 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
       // Check if function passes through check points
       if (question.checkPoints) {
         correct = question.checkPoints.every(point => {
-          const y = evaluateFunction(userFunction, point.x)
+          const y = evaluateMathExpression(userFunction, point.x)
           return Math.abs(y - point.y) < 0.1
         })
       } else {
@@ -226,8 +220,8 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
           question.gridConfig.xMin + (i / 9) * (question.gridConfig.xMax - question.gridConfig.xMin)
         )
         correct = testPoints.every(x => {
-          const userY = evaluateFunction(userFunction, x)
-          const correctY = evaluateFunction(question.correctFunction, x)
+          const userY = evaluateMathExpression(userFunction, x)
+          const correctY = evaluateMathExpression(question.correctFunction, x)
           return Math.abs(userY - correctY) < 0.1
         })
       }
@@ -249,7 +243,7 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
     if (window.navigator && window.navigator.vibrate) {
       window.navigator.vibrate(correct ? [100] : [50, 50, 50])
     }
-  }, [userFunction, question, evaluateFunction, validateFunction, onAnswer])
+  }, [userFunction, question, validateFunction, onAnswer])
 
   return (
     <div className="space-y-8">
@@ -263,7 +257,7 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
           {question.question}
         </h2>
         <p className="text-muted-foreground">
-          Enter a function to plot on the graph
+          Enter a function to plot on the graph (e.g., x^2 + 2*x + 1)
         </p>
       </motion.div>
 
@@ -337,7 +331,7 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
           ) : (
             <div>
               <p>Not quite. The correct function is:</p>
-              <p className="mt-2 font-mono">{question.correctFunction}</p>
+              <p className="mt-2 font-mono">{formatMathExpression(question.correctFunction)}</p>
               {question.explanation && (
                 <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
               )}

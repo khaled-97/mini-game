@@ -15,35 +15,61 @@ interface Props {
 
 export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) {
   const [timeLeft, setTimeLeft] = useState(question.timeLimit)
-  const [correctTaps, setCorrectTaps] = useState(0)
-  const [incorrectTaps, setIncorrectTaps] = useState(0)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const [tappedItems, setTappedItems] = useState<Set<number>>(new Set())
-  const [isPaused, setIsPaused] = useState(false)
 
   // Timer
   useEffect(() => {
-    if (hasSubmitted || timeLeft <= 0 || isPaused) return
+    if (hasSubmitted || timeLeft <= 0) return
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer)
-          handleTimeUp()
+          handleSubmit()
         }
         return prev - 1
       })
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [timeLeft, hasSubmitted, isPaused])
+  }, [timeLeft, hasSubmitted])
 
-  // Handle time up
-  const handleTimeUp = useCallback(() => {
+  // Handle item tap
+  const handleTap = useCallback((index: number) => {
+    if (hasSubmitted || timeLeft <= 0) return
+
+    setTappedItems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
+      }
+      return newSet
+    })
+    
+    soundManager.play('click')
+
+    // Vibrate on mobile devices
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50)
+    }
+  }, [hasSubmitted, timeLeft])
+
+  const handleSubmit = useCallback(() => {
     if (hasSubmitted) return
 
-    const correct = correctTaps >= question.minCorrect
+    // Count correct selections
+    const correctSelections = Array.from(tappedItems).filter(
+      index => question.items[index].isCorrect
+    ).length
+
+    const totalCorrectItems = question.items.filter(item => item.isCorrect).length
+    const correct = correctSelections === totalCorrectItems && 
+                   tappedItems.size === totalCorrectItems
+
     setIsCorrect(correct)
     setHasSubmitted(true)
     onAnswer({
@@ -60,37 +86,7 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
     if (window.navigator && window.navigator.vibrate) {
       window.navigator.vibrate(correct ? [100] : [50, 50, 50])
     }
-  }, [question, correctTaps, tappedItems, hasSubmitted, onAnswer])
-
-  // Handle item tap
-  const handleTap = useCallback((index: number, isCorrect: boolean) => {
-    if (hasSubmitted || timeLeft <= 0) return
-
-    setTappedItems(prev => new Set([...prev, index]))
-    
-    if (isCorrect) {
-      setCorrectTaps(prev => prev + 1)
-      soundManager.play('click')
-
-      // Check if all correct items have been tapped
-      const totalCorrectItems = question.items.filter(item => item.isCorrect).length
-      if (correctTaps + 1 === totalCorrectItems) {
-        setIsPaused(true)
-      }
-    } else {
-      setIncorrectTaps(prev => prev + 1)
-      // Optional: Play error sound
-    }
-
-    // Vibrate on mobile devices
-    if (window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(isCorrect ? [50] : [20])
-    }
-  }, [hasSubmitted, timeLeft, correctTaps, question.items])
-
-  const handleConfirm = useCallback(() => {
-    handleTimeUp()
-  }, [handleTimeUp])
+  }, [question, tappedItems, hasSubmitted, onAnswer])
 
   return (
     <div className="space-y-8">
@@ -104,23 +100,15 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
           {question.question}
         </h2>
         <p className="text-muted-foreground">
-          Tap {question.minCorrect} correct items before time runs out!
+          Tap all correct items before time runs out! (Tap again to deselect)
         </p>
       </motion.div>
 
-      {/* Timer and Score */}
-      <div className="grid grid-cols-3 gap-4 text-center">
-        <div className="p-4 rounded-lg bg-muted">
+      {/* Timer */}
+      <div className="text-center">
+        <div className="inline-block px-6 py-3 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-primary">{timeLeft}s</div>
           <div className="text-sm text-muted-foreground">Time Left</div>
-        </div>
-        <div className="p-4 rounded-lg bg-green-50">
-          <div className="text-2xl font-bold text-green-600">{correctTaps}</div>
-          <div className="text-sm text-green-600">Correct</div>
-        </div>
-        <div className="p-4 rounded-lg bg-red-50">
-          <div className="text-2xl font-bold text-red-600">{incorrectTaps}</div>
-          <div className="text-sm text-red-600">Incorrect</div>
         </div>
       </div>
 
@@ -133,7 +121,7 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
         <AnimatePresence mode="popLayout">
           {question.items.map((item, index) => {
             const isItemTapped = tappedItems.has(index)
-            const showResult = hasSubmitted && isItemTapped
+            const showResult = hasSubmitted
 
             return (
               <motion.button
@@ -141,17 +129,16 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                whileHover={!hasSubmitted && !isItemTapped ? { scale: 1.05 } : {}}
-                whileTap={!hasSubmitted && !isItemTapped ? { scale: 0.95 } : {}}
-                onClick={() => handleTap(index, item.isCorrect)}
-                disabled={hasSubmitted || isItemTapped}
-                className={`p-4 rounded-xl border-2 transition-all duration-200 touch-manipulation
-                  ${!hasSubmitted && !isItemTapped ? 'hover:border-primary hover:bg-primary/5' : ''}
-                  ${isItemTapped ? 'cursor-default' : 'cursor-pointer'}
-                  ${showResult && item.isCorrect ? 'border-green-500 bg-green-50' : ''}
-                  ${showResult && !item.isCorrect ? 'border-red-500 bg-red-50' : ''}
-                  ${!showResult && isItemTapped ? 'border-gray-300 bg-gray-50' : 'border-gray-200'}
-                  disabled:cursor-default
+                whileHover={!hasSubmitted ? { scale: 1.05 } : {}}
+                whileTap={!hasSubmitted ? { scale: 0.95 } : {}}
+                onClick={() => handleTap(index)}
+                disabled={hasSubmitted}
+                className={`p-4 rounded-xl border-2 transition-all duration-200 touch-manipulation select-none
+                  ${!hasSubmitted ? 'hover:border-primary hover:bg-primary/5 active:bg-primary/10 active:scale-[0.98]' : ''}
+                  ${!showResult && isItemTapped ? 'border-primary bg-primary/5' : 'border-gray-200'}
+                  ${showResult && item.isCorrect ? 'border-green-500 bg-green-50 scale-[1.02]' : ''}
+                  ${showResult && !item.isCorrect && isItemTapped ? 'border-red-500 bg-red-50 scale-[1.02]' : ''}
+                  disabled:cursor-default focus:outline-none focus:ring-2 focus:ring-primary/50
                 `}
               >
                 <div className="text-center">
@@ -161,10 +148,10 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className={`block mt-2 text-xl ${
-                        item.isCorrect ? 'text-green-500' : 'text-red-500'
+                        item.isCorrect ? 'text-green-500' : (isItemTapped ? 'text-red-500' : 'text-gray-400')
                       }`}
                     >
-                      {item.isCorrect ? '✓' : '✗'}
+                      {item.isCorrect ? '✓' : (isItemTapped ? '✗' : '•')}
                     </motion.span>
                   )}
                 </div>
@@ -175,7 +162,7 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
       </motion.div>
 
       {/* Confirm Button */}
-      {isPaused && !hasSubmitted && (
+      {!hasSubmitted && tappedItems.size > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -184,7 +171,7 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={handleConfirm}
+            onClick={handleSubmit}
             className="px-6 py-3 bg-primary text-white rounded-full font-medium"
           >
             Confirm Answers
@@ -202,12 +189,8 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
           }`}
         >
           <h3 className="text-xl font-semibold mb-2">
-            {isCorrect ? 'Great job!' : 'Time\'s up!'}
+            {isCorrect ? 'Great job!' : 'Not quite!'}
           </h3>
-          <p>
-            You got {correctTaps} correct {correctTaps === 1 ? 'tap' : 'taps'} and{' '}
-            {incorrectTaps} incorrect {incorrectTaps === 1 ? 'tap' : 'taps'}.
-          </p>
           {question.explanation && (
             <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
           )}

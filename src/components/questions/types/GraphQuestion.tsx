@@ -203,7 +203,7 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+        className="text-center select-none touch-manipulation"
       >
         <h2 className="text-2xl font-semibold text-primary mb-2">
           {question.question}
@@ -219,7 +219,7 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
           ref={canvasRef}
           onClick={handleCanvasInteraction}
           onTouchStart={handleCanvasInteraction}
-          className="w-full h-full border-2 border-gray-200 rounded-lg touch-none"
+          className="w-full h-full border-2 border-gray-200 rounded-lg touch-none cursor-crosshair"
         />
       </div>
 
@@ -233,7 +233,7 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleReset}
-              className="px-6 py-3 bg-gray-200 text-gray-800 rounded-full font-medium"
+              className="px-6 py-3 bg-gray-200 text-gray-800 rounded-full font-medium touch-manipulation select-none active:scale-[0.98]"
             >
               Reset Point
             </motion.button>
@@ -244,7 +244,7 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSubmit}
-                className="px-6 py-3 bg-primary text-white rounded-full font-medium"
+                className="px-6 py-3 bg-primary text-white rounded-full font-medium touch-manipulation select-none active:scale-[0.98]"
               >
                 Check Answer
               </motion.button>
@@ -256,7 +256,7 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onSkip}
-                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-full font-medium"
+                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-full font-medium touch-manipulation select-none active:scale-[0.98]"
               >
                 Skip
               </motion.button>
@@ -271,7 +271,7 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onNext}
-            className="px-6 py-3 bg-primary text-white rounded-full font-medium"
+            className="px-6 py-3 bg-primary text-white rounded-full font-medium touch-manipulation select-none active:scale-[0.98]"
           >
             Next Question
           </motion.button>
@@ -283,7 +283,7 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-6 rounded-lg text-center ${
+          className={`p-6 rounded-lg text-center select-none touch-manipulation ${
             isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
           }`}
         >
