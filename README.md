@@ -42,7 +42,7 @@ This is a side project im working on to implement into our educational website w
 
 
                              /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\
-                            PRE-THE MOST USED EDUCATIONAL APP IN THE COUNTRY
-                                                                                                                                                                                                                                       educational systems will need us ;)
+                            PRE-THE MOST USED EDUCATIONAL APP/WEBSITE IN THE COUNTRY
+                                                                                                                                                                                    educational systems will need us ;)
 
 
