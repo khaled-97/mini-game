@@ -165,7 +165,7 @@ export default function PracticeMode({ questions }: Props) {
               isCorrect ? 'bg-green-500' : 'bg-red-500'
             }`}
           >
-            <p className="text-lg font-medium">
+            <p className="text-lg font-medium ">
               {isCorrect ? 
                 `Correct! ${streak > 1 ? `${streak}x Streak! 🔥` : '🎉'}` : 
                 'Try again! 💪'

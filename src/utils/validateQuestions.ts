@@ -96,12 +96,21 @@ export function validateQuestions(questions: Question[]): string[] {
         }
         break
 
-      case 'step-order':
-        if (!Array.isArray(question.steps) || question.steps.length < 2) {
-          errors.push(`Step order question ${index + 1} needs at least 2 steps`)
+      case 'order':
+        if (!Array.isArray(question.correctOrder) || question.correctOrder.length < 2) {
+          errors.push(`Order question ${index + 1} needs at least 2 items`)
         }
-        if (!Array.isArray(question.correctOrder) || question.correctOrder.length !== question.steps?.length) {
-          errors.push(`Step order question ${index + 1} has mismatched steps and correct order`)
+        break
+
+      case 'type-in':
+        if (!question.correctAnswer) {
+          errors.push(`Type in question ${index + 1} is missing a correct answer`)
+        }
+        if (!question.validation) {
+          errors.push(`Type in question ${index + 1} is missing validation rules`)
+        }
+        if (!question.validation?.type) {
+          errors.push(`Type in question ${index + 1} is missing validation type`)
         }
         break
     }

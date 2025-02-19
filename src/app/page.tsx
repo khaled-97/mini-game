@@ -11,7 +11,6 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl font-bold text-primary mb-8"
         >
-          Math Learning Game
         </motion.h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -58,19 +57,7 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/50 rounded-lg p-4"
-          >
-            <h3 className="font-semibold mb-2">Adaptive Learning</h3>
-            <p className="text-sm text-muted-foreground">
-              Questions adjust to your skill level for optimal learning.
-            </p>
-          </motion.div>
-
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react'
 import { Question } from '@/types/question'
 import { motion, AnimatePresence } from 'framer-motion'
+import { logger } from '@/utils/logger'
 
 // Import all question type components
 import DragDropQuestion from './types/DragDropQuestion'
@@ -13,6 +14,7 @@ import LineMatchQuestion from './types/LineMatchQuestion'
 import QuickTapQuestion from './types/QuickTapQuestion'
 import TypeInQuestion from './types/TypeInQuestion'
 import GraphPlotQuestion from './types/GraphPlotQuestion'
+import SliderInputQuestion from './types/SliderInputQuestion'
 
 interface Props {
   question: Question
@@ -22,6 +24,12 @@ interface Props {
 }
 
 export default function QuestionComponent({ question, onAnswer, onNext, onSkip }: Props) {
+  // Log when a question is rendered
+  logger.info('QuestionComponent', 'Rendering question', {
+    type: question.type,
+    difficulty: question.difficulty
+  })
+  
   // Render the appropriate question component based on type
   const renderQuestion = () => {
     switch (question.type) {
@@ -104,6 +112,15 @@ export default function QuestionComponent({ question, onAnswer, onNext, onSkip }
             onAnswer={onAnswer}
             onNext={onNext}
             onSkip={onSkip}
+          />
+        )
+      case 'slider-input':
+        return (
+          <SliderInputQuestion
+            question={question}
+            onAnswer={onAnswer}
+            onNext={onNext}
+            userAnswer={undefined}
           />
         )
       default:

@@ -11,14 +11,40 @@ interface Props {
   onSkip?: () => void
 }
 
+const GRID_TARGET_STEPS = 10
+
 export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Props) {
+  // Dynamic sizes based on canvas width
+  const getResponsiveSizes = useCallback((width: number) => {
+    const baseWidth = 600 // Base width for desktop
+    const scale = Math.max(0.5, width / baseWidth) // Minimum scale of 0.5
+    return {
+      pointRadius: Math.max(6, Math.floor(8 * scale)),
+      fontSize: Math.max(12, Math.floor(14 * scale)),
+      labelOffset: Math.max(8, Math.floor(10 * scale))
+    }
+  }, [])
   const [points, setPoints] = useState<{ x: number; y: number }[]>([])
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
 
-  // Convert graph coordinates to canvas coordinates
+  // Helper to calculate grid step size
+  const getGridStep = useCallback((range: number) => {
+    let step = range / GRID_TARGET_STEPS
+    const exponent = Math.floor(Math.log10(step))
+    const mantissa = step / Math.pow(10, exponent)
+    
+    if (mantissa <= 1) step = 1 * Math.pow(10, exponent)
+    else if (mantissa <= 2) step = 2 * Math.pow(10, exponent)
+    else if (mantissa <= 5) step = 5 * Math.pow(10, exponent)
+    else step = 10 * Math.pow(10, exponent)
+    
+    return step
+  }, [])
+
+  // Coordinate conversions
   const graphToCanvas = useCallback((x: number, y: number) => {
     const { width, height } = canvasSize
     const { xMin, xMax, yMin, yMax } = question.gridConfig
@@ -29,18 +55,126 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
     return { x: canvasX, y: canvasY }
   }, [canvasSize, question.gridConfig])
 
-  // Convert canvas coordinates to graph coordinates
-  const canvasToGraph = useCallback((canvasX: number, canvasY: number) => {
+  const canvasToGraph = useCallback((clientX: number, clientY: number) => {
     const { width, height } = canvasSize
     const { xMin, xMax, yMin, yMax } = question.gridConfig
     
-    const x = xMin + (canvasX / width) * (xMax - xMin)
-    const y = yMin + ((height - canvasY) / height) * (yMax - yMin)
+    const x = xMin + (clientX / width) * (xMax - xMin)
+    const y = yMin + ((height - clientY) / height) * (yMax - yMin)
     
     return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 }
   }, [canvasSize, question.gridConfig])
 
-  // Draw grid and points
+  // Drawing functions
+  const drawGrid = useCallback((ctx: CanvasRenderingContext2D) => {
+    const { xMin, xMax, yMin, yMax } = question.gridConfig
+    const xStep = getGridStep(xMax - xMin)
+    const yStep = getGridStep(yMax - yMin)
+    const { fontSize } = getResponsiveSizes(canvasSize.width)
+    const dpr = window.devicePixelRatio || 1
+
+    // Style setup
+    ctx.strokeStyle = '#e5e7eb'
+    ctx.lineWidth = Math.max(1, 1 * dpr) // Thicker lines on high DPI screens
+    ctx.font = `${fontSize}px sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    
+    // Draw origin label
+    const origin = graphToCanvas(0, 0)
+    ctx.fillStyle = '#4b5563'
+    ctx.fillText('0', origin.x + fontSize/2, origin.y + fontSize/2)
+
+    // Draw and label vertical lines
+    let x = Math.floor(xMin / xStep) * xStep
+    while (x <= xMax) {
+      if (x >= xMin) {
+        const { x: canvasX } = graphToCanvas(x, 0)
+        ctx.beginPath()
+        ctx.moveTo(canvasX, 0)
+        ctx.lineTo(canvasX, canvasSize.height)
+        ctx.stroke()
+
+        // Draw x-axis labels (skip 0 as it's on the axis)
+        if (x !== 0) {
+          const { y: labelY } = graphToCanvas(0, 0)
+          ctx.fillStyle = '#6b7280'
+          ctx.fillText(x.toString(), canvasX, labelY + fontSize)
+        }
+      }
+      x += xStep
+    }
+
+    // Draw and label horizontal lines
+    let y = Math.floor(yMin / yStep) * yStep
+    while (y <= yMax) {
+      if (y >= yMin) {
+        const { y: canvasY } = graphToCanvas(0, y)
+        ctx.beginPath()
+        ctx.moveTo(0, canvasY)
+        ctx.lineTo(canvasSize.width, canvasY)
+        ctx.stroke()
+
+        // Draw y-axis labels (skip 0 as it's on the axis)
+        if (y !== 0) {
+          const { x: labelX } = graphToCanvas(0, 0)
+          ctx.fillStyle = '#6b7280'
+          ctx.fillText(y.toString(), labelX - fontSize, canvasY)
+        }
+      }
+      y += yStep
+    }
+  }, [graphToCanvas, question.gridConfig, canvasSize, getGridStep])
+
+  const drawAxes = useCallback((ctx: CanvasRenderingContext2D) => {
+    ctx.strokeStyle = '#000000'
+    ctx.lineWidth = 2
+
+    // X-axis
+    const xAxis = graphToCanvas(0, 0)
+    ctx.beginPath()
+    ctx.moveTo(0, xAxis.y)
+    ctx.lineTo(canvasSize.width, xAxis.y)
+    ctx.stroke()
+
+    // Y-axis
+    const yAxis = graphToCanvas(0, 0)
+    ctx.beginPath()
+    ctx.moveTo(yAxis.x, 0)
+    ctx.lineTo(yAxis.x, canvasSize.height)
+    ctx.stroke()
+  }, [graphToCanvas, canvasSize])
+
+  const drawPoints = useCallback((ctx: CanvasRenderingContext2D) => {
+    points.forEach(point => {
+      const { x, y } = graphToCanvas(point.x, point.y)
+      
+      ctx.fillStyle = hasSubmitted
+        ? isCorrect ? '#22c55e' : '#ef4444'
+        : '#6366f1'
+      
+      ctx.beginPath()
+      const { pointRadius, fontSize, labelOffset } = getResponsiveSizes(canvasSize.width)
+      ctx.arc(x, y, pointRadius, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Adjust label position based on quadrant to prevent text from going off-screen
+      const textX = x + labelOffset
+      const textY = y - labelOffset
+      const metrics = ctx.measureText(`(${point.x}, ${point.y})`)
+      
+      // Adjust font size
+      ctx.fillStyle = '#000000'
+      ctx.font = `${fontSize}px sans-serif`
+      
+      // Adjust position if too close to edges
+      const labelX = textX + metrics.width > canvasSize.width ? x - metrics.width - labelOffset : textX
+      const labelY = textY < metrics.actualBoundingBoxAscent ? y + fontSize + labelOffset : textY
+      
+      ctx.fillText(`(${point.x}, ${point.y})`, labelX, labelY)
+    })
+  }, [points, hasSubmitted, isCorrect, graphToCanvas])
+
   const draw = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -48,103 +182,44 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const { width, height } = canvas
-    const { xMin, xMax, yMin, yMax, showGrid } = question.gridConfig
+    // High-DPI setup
+    const dpr = window.devicePixelRatio || 1
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height)
+    if (question.gridConfig.showGrid) drawGrid(ctx)
+    drawAxes(ctx)
+    drawPoints(ctx)
+  }, [drawAxes, drawGrid, drawPoints, question.gridConfig.showGrid])
 
-    // Draw grid
-    if (showGrid) {
-      ctx.strokeStyle = '#e5e7eb'
-      ctx.lineWidth = 1
-
-      // Vertical lines
-      for (let x = xMin; x <= xMax; x++) {
-        const { x: canvasX } = graphToCanvas(x, 0)
-        ctx.beginPath()
-        ctx.moveTo(canvasX, 0)
-        ctx.lineTo(canvasX, height)
-        ctx.stroke()
-      }
-
-      // Horizontal lines
-      for (let y = yMin; y <= yMax; y++) {
-        const { y: canvasY } = graphToCanvas(0, y)
-        ctx.beginPath()
-        ctx.moveTo(0, canvasY)
-        ctx.lineTo(width, canvasY)
-        ctx.stroke()
-      }
-    }
-
-    // Draw axes
-    ctx.strokeStyle = '#000000'
-    ctx.lineWidth = 2
-
-    // x-axis
-    const { y: xAxisY } = graphToCanvas(0, 0)
-    ctx.beginPath()
-    ctx.moveTo(0, xAxisY)
-    ctx.lineTo(width, xAxisY)
-    ctx.stroke()
-
-    // y-axis
-    const { x: yAxisX } = graphToCanvas(0, 0)
-    ctx.beginPath()
-    ctx.moveTo(yAxisX, 0)
-    ctx.lineTo(yAxisX, height)
-    ctx.stroke()
-
-    // Draw points
-    points.forEach(point => {
-      const { x: canvasX, y: canvasY } = graphToCanvas(point.x, point.y)
-      
-      // Point
-      ctx.fillStyle = hasSubmitted
-        ? isCorrect ? '#22c55e' : '#ef4444'
-        : '#6366f1'
-      ctx.beginPath()
-      ctx.arc(canvasX, canvasY, 8, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Coordinates
-      ctx.fillStyle = '#000000'
-      ctx.font = '14px sans-serif'
-      ctx.textAlign = 'left'
-      ctx.textBaseline = 'bottom'
-      ctx.fillText(`(${point.x}, ${point.y})`, canvasX + 10, canvasY - 10)
-    })
-  }, [points, hasSubmitted, isCorrect, graphToCanvas, question.gridConfig])
-
-  // Handle canvas resize
+  // Resize handler
   useEffect(() => {
-    const handleResize = () => {
-      const canvas = canvasRef.current
-      if (!canvas) return
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-      const container = canvas.parentElement
-      if (!container) return
+    const container = canvas.parentElement
+    if (!container) return
 
-      const { width, height } = container.getBoundingClientRect()
-      canvas.width = width
-      canvas.height = height
+    const observer = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect
+      const dpr = window.devicePixelRatio || 1
+      
+      canvas.width = width * dpr
+      canvas.height = height * dpr
+      canvas.style.width = `${width}px`
+      canvas.style.height = `${height}px`
+      
       setCanvasSize({ width, height })
-    }
+    })
 
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    observer.observe(container)
+    return () => observer.disconnect()
   }, [])
 
-  // Draw whenever points or canvas size changes
-  useEffect(() => {
-    draw()
-  }, [draw, canvasSize])
-
-  // Handle canvas click/touch
+  // Interaction handler
   const handleCanvasInteraction = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (hasSubmitted) return
+    if (e.nativeEvent instanceof TouchEvent) e.preventDefault()
 
     const canvas = canvasRef.current
     if (!canvas) return
@@ -152,50 +227,57 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
     const rect = canvas.getBoundingClientRect()
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    const canvasX = clientX - rect.left
-    const canvasY = clientY - rect.top
+    
+    const point = canvasToGraph(
+      (clientX - rect.left) * (canvasSize.width / rect.width),
+      (clientY - rect.top) * (canvasSize.height / rect.height)
+    )
 
-    const point = canvasToGraph(canvasX, canvasY)
     setPoints([point])
     soundManager.play('click')
 
-    // Vibrate on mobile devices
-    if (window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(50)
-    }
-  }, [hasSubmitted, canvasToGraph])
+    if (navigator.vibrate) navigator.vibrate(50)
+  }, [hasSubmitted, canvasToGraph, canvasSize])
 
-  // Handle submit
+  // Submit handler
   const handleSubmit = useCallback(() => {
     if (points.length === 0) return
-
-    const correct = question.correctPoints.some(correctPoint =>
-      points.some(point =>
-        Math.abs(point.x - correctPoint.x) < 0.2 &&
-        Math.abs(point.y - correctPoint.y) < 0.2
+  
+    const threshold = Math.min(
+      0.2,
+      Math.max(
+        0.1,
+        (question.gridConfig.xMax - question.gridConfig.xMin) * 0.02
       )
     )
-
+  
+    const correct = question.correctPoints.some(correctPoint =>
+      points.some(point =>
+        Math.abs(point.x - correctPoint.x) < threshold &&
+        Math.abs(point.y - correctPoint.y) < threshold
+      )
+    )
+  
     setIsCorrect(correct)
     setHasSubmitted(true)
     onAnswer({
       correct,
       answer: points.map(p => `(${p.x}, ${p.y})`)
     })
+    
     soundManager.play(correct ? 'correct' : 'incorrect')
+    if (navigator.vibrate) navigator.vibrate(correct ? 100 : [50, 50, 50])
+  }, [points, question.correctPoints, question.gridConfig, onAnswer])
 
-    // Vibrate on mobile devices
-    if (window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(correct ? [100] : [50, 50, 50])
-    }
-  }, [points, question.correctPoints, onAnswer])
-
-  // Handle reset
+  // Reset handler
   const handleReset = useCallback(() => {
     if (hasSubmitted) return
     setPoints([])
     soundManager.play('click')
   }, [hasSubmitted])
+
+  // Redraw when needed
+  useEffect(() => { draw() }, [draw, points, hasSubmitted, isCorrect])
 
   return (
     <div className="space-y-8">

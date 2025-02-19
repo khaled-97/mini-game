@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import useGameStore from '@/store/useGameStore'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -62,7 +63,7 @@ export default function Navbar() {
           </div>
 
           {/* Navigation links */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 mr-2">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -90,6 +91,7 @@ export default function Navbar() {
                 )}
               </Link>
             ))}
+            <ThemeToggle />
           </div>
         </div>
       </div>

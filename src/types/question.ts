@@ -1,6 +1,6 @@
 import { QuestionItem } from '@/utils/questionContent'
 
-export type QuestionType = 'multiple-choice' | 'drag-drop' | 'graph' | 'order' | 'fill-blank' | 'line-match' | 'quick-tap' | 'type-in' | 'graph-plot'
+export type QuestionType = 'multiple-choice' | 'drag-drop' | 'graph' | 'order' | 'fill-blank' | 'line-match' | 'quick-tap' | 'type-in' | 'graph-plot' | 'slider-input'
 
 export interface BaseQuestion {
   id: string
@@ -107,6 +107,7 @@ export interface TypeInQuestion extends BaseQuestion {
     precision?: number // For numbers, how many decimal places to check
     pattern?: string // Regex pattern for text validation
     integer?: boolean // For numbers, whether to require whole numbers
+    tolerance?: number // for numbers, (acceptable range = correctAnswer ± tolerance)
   }
   explanation?: string
 }
@@ -129,6 +130,18 @@ export interface GraphPlotQuestion extends BaseQuestion {
   explanation?: string
 }
 
+export interface SliderInputQuestion extends BaseQuestion {
+  type: 'slider-input'
+  question: string
+  min: number
+  max: number
+  correctAnswer: number
+  tolerance?: number // Acceptable range = correctAnswer ± tolerance
+  unit?: string // e.g., "°" for angles
+  explanation?: string
+  scenario?: string // Optional scenario text
+}
+
 export type Question =
   | MultipleChoiceQuestion
   | DragDropQuestion
@@ -139,6 +152,7 @@ export type Question =
   | QuickTapQuestion
   | TypeInQuestion
   | GraphPlotQuestion
+  | SliderInputQuestion
 
 export interface QuestionResponse {
   questionId: string

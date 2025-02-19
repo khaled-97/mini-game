@@ -12,6 +12,7 @@ interface Props {
   onAnswer: (answer: { correct: boolean; answer: string[] }) => void
   onNext: () => void
   onSkip?: () => void
+  showFeedback?: boolean
 }
 
 interface Connection {
@@ -149,7 +150,7 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
       const newConnection = { from: activeConnection.from, to: hoveredRightItem }
       setConnections(prev => [...prev, newConnection])
       setActiveConnection(null)
-      soundManager.play('click')
+      soundManager.play('connected')
       
       // Vibrate on mobile devices
       if (window.navigator && window.navigator.vibrate) {

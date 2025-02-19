@@ -18,12 +18,16 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Focus input on mount
+  // Reset state when question changes
   useEffect(() => {
+    setAnswer('')
+    setHasSubmitted(false)
+    setIsCorrect(false)
+    setError(null)
     if (inputRef.current) {
       inputRef.current.focus()
     }
-  }, [])
+  }, [question])
 
   const validateAnswer = useCallback((input: string): boolean => {
     // Normalize input and answers
@@ -59,12 +63,30 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
             const decimalPlaces = input.includes('.') ? input.split('.')[1].length : 0
             if (decimalPlaces > question.validation.precision) return false
           }
-          return true
+          
+          // Check against correct answer range or exact value
+          const correctNum = parseFloat(question.correctAnswer)
+          if (question.validation.tolerance !== undefined) {
+            return Math.abs(num - correctNum) <= question.validation.tolerance
+          } else {
+            return num === correctNum
+          }
         }
         case 'text': {
-          if (!question.validation.pattern) return true
-          const regex = new RegExp(question.validation.pattern)
-          return regex.test(input)
+          const normalizedInput = normalizeValue(input)
+          
+          // If pattern is provided, check against pattern first
+          if (question.validation.pattern) {
+            const regex = new RegExp(question.validation.pattern)
+            if (!regex.test(input)) return false
+          }
+          
+          // Check normalized input against possible answers
+          const correctAnswers = [
+            question.correctAnswer,
+            ...(question.acceptableAnswers || []),
+          ].map(ans => normalizeValue(ans))
+          return correctAnswers.includes(normalizedInput)
         }
         case 'formula': {
           // For formula validation, normalize both input and correct answer
@@ -260,6 +282,7 @@ function getInstructions(question: TypeInQuestionType): string {
     if (question.validation.max !== undefined) parts.push(`maximum: ${question.validation.max}`)
     if (question.validation.precision !== undefined) parts.push(`${question.validation.precision} decimal places`)
     if (question.validation.integer) parts.push('whole numbers only')
+    if (question.validation.tolerance !== undefined) parts.push(`±${question.validation.tolerance} tolerance`)
     return parts.length > 0 ? `Enter a number (${parts.join(', ')})` : 'Enter a number'
   }
   if (question.validation?.type === 'formula') {

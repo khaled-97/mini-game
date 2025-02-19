@@ -6,6 +6,7 @@ import { questions } from '@/data/questions'
 import { Question } from '@/types/question'
 import { shuffleQuestions } from '@/utils/shuffleQuestions'
 import logger from '@/utils/logger'
+import { WelcomeMessage } from '@/components/WelcomeMessage'
 
 export default function TopicPracticePage({
   params,
@@ -110,9 +111,10 @@ export default function TopicPracticePage({
         <h1 className="text-3xl font-bold text-primary mb-8 capitalize">
           {topicId.replace('-', ' ')}
         </h1>
-        <p className="text-muted-foreground mb-8">
-          Answer questions correctly to increase your score and build a streak!
-        </p>
+        <WelcomeMessage 
+          message="Answer questions correctly to increase your score and build a streak!" 
+          duration={3000}
+        />
         <PracticeMode questions={topicQuestions} />
       </div>
     </div>

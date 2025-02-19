@@ -13,7 +13,7 @@ export const questions: TopicQuestions = {
       points: 20,
       question: 'A number squared plus 3 times the number equals 10. The answer is {0}.',
       blanks: [
-        { id: 'b1', answer: '2', position: 0 }
+        { id: 'b1', answer: '2',acceptableAnswers:['-5'] , position: 0 }
       ],
       explanation: 'The equation is x² + 3x = 10. Rearranging to standard form: x² + 3x - 10 = 0. Using quadratic formula or factoring gives x = 2 or x = -5. Since we need one answer, x = 2 works.'
     },
@@ -22,7 +22,7 @@ export const questions: TopicQuestions = {
       type: 'graph',
       difficulty: 3,
       points: 25,
-      question: 'Match the equation to its graph: y = 2x + 3',
+      question: 'match the equation to its graph: y = 2x + 3',
       correctPoints: [
         { x: -1, y: 1 },
         { x: 0, y: 3 },
@@ -151,13 +151,13 @@ export const questions: TopicQuestions = {
       type: 'type-in',
       difficulty: 4,
       points: 30,
-      question: 'Solve the system: 2x + y = 7, x - y = 1',
+      question: 'whats y equal to in this system: 2x + y = 7, x - y = 1',
       correctAnswer: '3',
       validation: {
         type: 'number',
         integer: true
       },
-      explanation: 'Add equations to get 3x = 8, so x = 3. Then y = 7 - 2(3) = 1'
+      explanation: 'y=x-1, so we use this in the first equation: 2x + x - 1 = 7, 3x = 8, x = 8/3, y = 8/3 - 1 = 3'
     },
     {
       id: 'alg-9',
@@ -509,6 +509,20 @@ export const questions: TopicQuestions = {
     }
   ],
   'trigonometry': [
+    {
+      id: 'trig-shadow',
+      type: 'slider-input',
+      difficulty: 4,
+      points: 30,
+      question: 'Find the angle of the sun above the horizon.',
+      scenario: 'At sunset, a 1.8m person casts a 3m shadow. Adjust the slider to show the sun\'s angle.',
+      min: 0,
+      max: 90,
+      correctAnswer: 31,
+      tolerance: 1,
+      unit: '°',
+      explanation: 'Using arctangent (opposite/adjacent): arctan(1.8/3) ≈ 31°. The angle is measured from the ground up to the sun.'
+    },
     {
       id: 'trig-1',
       type: 'type-in',
