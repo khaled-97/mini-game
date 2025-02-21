@@ -33,15 +33,3 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 
 # mini-game
-
-
-This is a side project im working on to implement into our educational website we are building.
-
-
-
-
-
-                             /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\  /\
-                            PRE-THE MOST USED EDUCATIONAL APP/WEBSITE IN THE COUNTRY
-                                                                                                                                                                                    educational systems will need us ;)
-
