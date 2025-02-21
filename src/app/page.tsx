@@ -11,6 +11,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl font-bold text-primary mb-8"
         >
+          Math Learning Game
         </motion.h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -21,7 +22,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-xl shadow-lg p-6 cursor-pointer"
+              className="bg-card text-card-foreground rounded-xl shadow-lg p-6 cursor-pointer hover-scale border-primary border"
             >
               <h2 className="text-2xl font-bold text-primary mb-4">Lessons</h2>
               <p className="text-muted-foreground">
@@ -37,7 +38,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-xl shadow-lg p-6 cursor-pointer"
+              className="bg-card text-card-foreground rounded-xl shadow-lg p-6 cursor-pointer hover-scale border-primary border"
             >
               <h2 className="text-2xl font-bold text-primary mb-4">Practice</h2>
               <p className="text-muted-foreground">
@@ -62,7 +63,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white/50 rounded-lg p-4"
+            className="bg-secondary/50 text-secondary-foreground rounded-lg p-4"
           >
             <h3 className="font-semibold mb-2">Interactive Problems</h3>
             <p className="text-sm text-muted-foreground">
@@ -74,7 +75,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white/50 rounded-lg p-4"
+            className="bg-secondary/50 text-secondary-foreground rounded-lg p-4"
           >
             <h3 className="font-semibold mb-2">Progress Tracking</h3>
             <p className="text-sm text-muted-foreground">

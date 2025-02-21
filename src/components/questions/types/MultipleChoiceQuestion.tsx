@@ -177,7 +177,7 @@ export default function MultipleChoiceQuestion({ question, onAnswer, onNext, onS
                 </div>
               ))}
               {question.explanation && (
-                <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
+                <p className="mt-4 text-sm text-muted-foreground dark:text-muted-foreground/90">{question.explanation}</p>
               )}
             </div>
           )}

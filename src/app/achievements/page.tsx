@@ -76,7 +76,7 @@ export default function AchievementsPage() {
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl font-bold text-center mb-8"
+          className="text-4xl font-bold text-center mb-8 text-foreground"
         >
           Achievements
         </motion.h1>
@@ -85,7 +85,7 @@ export default function AchievementsPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-card p-6 rounded-lg shadow-lg mb-8"
+          className="bg-card p-6 rounded-lg shadow-lg mb-8 text-card-foreground"
         >
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
@@ -130,10 +130,10 @@ export default function AchievementsPage() {
             <motion.div
               key={achievement.id}
               variants={item}
-              className={`bg-card p-6 rounded-lg shadow-sm border
+              className={`bg-card p-6 rounded-lg shadow-sm border 
                 ${
                   achievement.completed
-                    ? 'bg-green-50 border-green-200'
+                    ? 'border-success bg-success/10'
                     : 'border-border'
                 }
               `}
@@ -141,7 +141,7 @@ export default function AchievementsPage() {
               <div className="flex items-start space-x-4">
                 <div className="text-4xl">{achievement.icon}</div>
                 <div className="flex-grow">
-                  <h3 className="text-lg font-semibold mb-1">
+                  <h3 className="text-lg font-semibold mb-1 text-card-foreground">
                     {achievement.name}
                   </h3>
                   <p className="text-muted-foreground mb-3">
@@ -153,7 +153,7 @@ export default function AchievementsPage() {
                         {achievement.xpReward} XP
                       </div>
                       {achievement.completed && (
-                        <span className="text-green-600 text-sm">✓ Completed</span>
+                        <span className="text-success text-sm">✓ Completed</span>
                       )}
                     </div>
                   </div>

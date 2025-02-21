@@ -333,7 +333,7 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
               <p>Not quite. The correct function is:</p>
               <p className="mt-2 font-mono">{formatMathExpression(question.correctFunction)}</p>
               {question.explanation && (
-                <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
+                <p className="mt-4 text-sm text-muted-foreground dark:text-muted-foreground/90">{question.explanation}</p>
               )}
             </div>
           )}

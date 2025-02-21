@@ -126,18 +126,18 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
             return (
               <motion.button
                 key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                whileHover={!hasSubmitted ? { scale: 1.05 } : {}}
-                whileTap={!hasSubmitted ? { scale: 0.95 } : {}}
+                initial={{ opacity: 0}}
+                animate={{ opacity: 1}}
+                exit={{ opacity: 0}}
+                whileHover={!hasSubmitted ? { scale: 1.02 } : {}}
+                whileTap={!hasSubmitted ? { scale: 0.98 } : {}}
                 onClick={() => handleTap(index)}
                 disabled={hasSubmitted}
                 className={`p-4 rounded-xl border-2 transition-all duration-200 touch-manipulation select-none
                   ${!hasSubmitted ? 'hover:border-primary hover:bg-primary/5 active:bg-primary/10 active:scale-[0.98]' : ''}
                   ${!showResult && isItemTapped ? 'border-primary bg-primary/5' : 'border-gray-200'}
-                  ${showResult && item.isCorrect ? 'border-green-500 bg-green-50 scale-[1.02]' : ''}
-                  ${showResult && !item.isCorrect && isItemTapped ? 'border-red-500 bg-red-50 scale-[1.02]' : ''}
+                  ${showResult && item.isCorrect ? 'border-success/50 bg-success/20' : ''}
+                  ${showResult && !item.isCorrect && isItemTapped ? 'border-error/50 bg-error/15' : ''}
                   disabled:cursor-default focus:outline-none focus:ring-2 focus:ring-primary/50
                 `}
               >
@@ -147,11 +147,11 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
                     <motion.span
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className={`block mt-2 text-xl ${
-                        item.isCorrect ? 'text-green-500' : (isItemTapped ? 'text-red-500' : 'text-gray-400')
+                      className={` ${
+                        item.isCorrect ? 'text-success' : (isItemTapped ? 'text-error' : 'text-gray-400')
                       }`}
                     >
-                      {item.isCorrect ? '✓' : (isItemTapped ? '✗' : '•')}
+                      {item.isCorrect ? ' ✓' : (isItemTapped ? ' ✗' : ' •')}
                     </motion.span>
                   )}
                 </div>
@@ -192,7 +192,7 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
             {isCorrect ? 'Great job!' : 'Not quite!'}
           </h3>
           {question.explanation && (
-            <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
+            <p className="mt-4 text-sm text-muted-foreground dark:text-muted-foreground/90">{question.explanation}</p>
           )}
           <motion.button
             initial={{ opacity: 0 }}

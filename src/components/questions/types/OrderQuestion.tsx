@@ -96,7 +96,7 @@ function SortableItem({ id, content, index, isActive, disabled }: SortableItemPr
       style={style}
       {...attributes}
       {...listeners}
-      className={`p-4 bg-white rounded-lg border-2 mb-2 cursor-grab active:cursor-grabbing touch-none select-none
+      className={`p-4 bg-background rounded-lg border-2 mb-2 cursor-grab active:cursor-grabbing touch-none select-none
         ${isDragging || isActive ? 'border-primary bg-primary/5 shadow-lg' : 'border-gray-200 hover:border-primary/50'}
         ${isDragging ? 'shadow-2xl' : ''}
         transition-shadow duration-200
@@ -147,7 +147,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
     // Use PointerSensor as primary for better cross-device compatibility
     useSensor(PointerSensor, {
       activationConstraint: isTouchDevice.current 
-        ? { delay: 150, tolerance: 8 } // More forgiving for touch
+        ? { delay: 0, tolerance: 8 } // More forgiving for touch
         : { distance: 5 } // Quick response for mouse
     }),
     // Fallback sensors
@@ -155,7 +155,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
       activationConstraint: { distance: 10 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 100, tolerance: 5 },
+      activationConstraint: { delay: 0, tolerance: 5 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -335,7 +335,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
 
           <DragOverlay dropAnimation={dropAnimation} zIndex={30}>
             {activeId ? (
-              <div className="p-4 bg-white rounded-lg border-2 border-primary shadow-xl max-w-2xl transform scale-[1.03]">
+              <div className="p-4 bg-background rounded-lg border-2 border-primary shadow-xl max-w-2xl transform scale-[1.03]">
                 <Item 
                   content={getItemContent(String(activeId))} 
                   index={itemOrder.indexOf(String(activeId))} 
@@ -391,7 +391,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
                   question.correctOrder.map((stepIndex, index) => {
                     const step = question.steps![parseInt(stepIndex)]
                     return (
-                      <div key={index} className="p-2 bg-white/50 rounded shadow-sm">
+                      <div key={index} className="p-2 bg-background/50 rounded shadow-sm">
                         <div className="font-mono">{step.equation}</div>
                         {step.explanation && (
                           <div className="mt-1 text-sm">{step.explanation}</div>
@@ -403,7 +403,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
                   // Number order question
                   <div className="flex justify-center gap-4">
                     {question.correctOrder.map((index) => (
-                      <div key={index} className="font-mono bg-white px-3 py-1 rounded border shadow-sm">
+                      <div key={index} className="font-mono bg-background px-3 py-1 rounded border shadow-sm">
                         {question.numbers![parseInt(index)]}
                       </div>
                     ))}
@@ -411,7 +411,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
                 ) : null}
               </div>
               {question.explanation && (
-                <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
+                <p className="mt-4 text-sm text-muted-foreground dark:text-muted-foreground/90">{question.explanation}</p>
               )}
             </div>
           )}

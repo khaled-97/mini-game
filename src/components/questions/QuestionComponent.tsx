@@ -156,7 +156,7 @@ export default function QuestionComponent({ question, onAnswer, onNext, onSkip }
       </motion.div>
 
       {/* Question */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="bg-background rounded-xl shadow-lg p-6">
         {renderQuestion()}
       </div>
     </div>

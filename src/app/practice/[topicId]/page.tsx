@@ -75,7 +75,7 @@ export default function TopicPracticePage({
       <div className="min-h-screen bg-background p-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Loading Questions...</h2>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto dark:opacity-80"></div>
         </div>
       </div>
     )
@@ -96,7 +96,7 @@ export default function TopicPracticePage({
               logger.info('PracticePage', 'Navigating back to topics')
               router.push('/topics')
             }}
-            className="px-6 py-3 bg-primary text-white rounded-full font-medium"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium"
           >
             Back to Topics
           </button>
@@ -108,9 +108,6 @@ export default function TopicPracticePage({
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-primary mb-8 capitalize">
-          {topicId.replace('-', ' ')}
-        </h1>
         <WelcomeMessage 
           message="Answer questions correctly to increase your score and build a streak!" 
           duration={3000}

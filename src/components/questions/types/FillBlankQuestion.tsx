@@ -63,8 +63,8 @@ function BlankInput({
         data-blank-id={id}
         className={`w-28 sm:w-36 p-3 text-center rounded-lg border-2 transition-all duration-200 touch-manipulation
           ${!hasSubmitted ? 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 active:border-primary active:bg-primary/5' : ''}
-          ${hasSubmitted && isCorrect ? 'border-green-500 bg-green-50 scale-[1.02]' : ''}
-          ${hasSubmitted && !isCorrect ? 'border-red-500 bg-red-50 scale-[1.02]' : ''}
+          ${hasSubmitted && isCorrect ? 'border-success bg-success/30 scale-[1.02]' : ''}
+          ${hasSubmitted && !isCorrect ? 'border-error bg-error/30 scale-[1.02]' : ''}
           disabled:cursor-not-allowed text-lg
         `}
         placeholder={`Blank ${position + 1}`}
@@ -251,7 +251,8 @@ export default function FillBlankQuestion({ question, onAnswer, onNext }: Props)
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className={`p-6 rounded-lg text-center ${
-            isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            isCorrect ? "bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-100" 
+              : "bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-100"
           }`}
         >
           {isCorrect ? (
@@ -273,7 +274,7 @@ export default function FillBlankQuestion({ question, onAnswer, onNext }: Props)
                 ))}
               </div>
               {question.explanation && (
-                <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
+                <p className="mt-4 text-sm text-muted-foreground dark:text-muted-foreground/90">{question.explanation}</p>
               )}
             </div>
           )}

@@ -248,7 +248,7 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
             <div>
               <p>Not quite. The correct answer is: {question.correctAnswer}</p>
               {question.explanation && (
-                <p className="mt-2 text-sm opacity-90">{question.explanation}</p>
+                <p className="mt-2 text-sm text-muted-foreground dark:text-muted-foreground/90">{question.explanation}</p>
               )}
             </div>
           )}

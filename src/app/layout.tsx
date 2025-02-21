@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={`font-sans ${inter.variable} touch-manipulation`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="system"
           enableSystem
         >
         <Navbar />

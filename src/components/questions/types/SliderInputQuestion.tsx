@@ -1,8 +1,9 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { SliderInputQuestion } from '@/types/question';
 import RichContent from '../RichContent';
 import { soundManager } from '@/utils/soundManager';
+import { useTheme } from 'next-themes';
 
 interface Props {
   question: SliderInputQuestion;
@@ -12,10 +13,18 @@ interface Props {
 }
 
 function SunVisualization({ angle, height, shadowLength }: { angle: number; height: number; shadowLength: number }) {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Use wider viewBox for better proportions
   const viewBoxWidth = 200;
   const viewBoxHeight = 100;
   const groundY = viewBoxHeight - 15;
+  
   // Responsive scaling based on viewBox size
   const scale = 16; // viewBox units per meter
   const fontSize = viewBoxWidth * 0.03; // Responsive font size
@@ -32,12 +41,14 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
   const personX = shadowLength * scale;
   const personBaseY = groundY;
   const personHeight = height * scale;
+
+  const isDark = mounted && resolvedTheme === 'dark';
   
   return (
     <div className="w-full max-w-full aspect-[2/1] max-h-[400px] mb-6 px-2">
       <svg
         viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-        className="w-full h-full bg-blue-50 rounded-lg"
+        className="w-full h-full bg-background rounded-lg border border-border"
         preserveAspectRatio="xMidYMid meet"
       >
         {/* Ground */}
@@ -46,7 +57,7 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
           y1={groundY} 
           x2={viewBoxWidth} 
           y2={groundY} 
-          stroke="#666"
+          stroke="hsl(var(--muted-foreground))"
           strokeWidth={personWidth}
         />
         
@@ -56,7 +67,7 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
           y1={groundY} 
           x2="0" 
           y2={groundY} 
-          stroke="#444"
+          stroke="hsl(var(--muted-foreground))"
           strokeWidth={personWidth * 2}
           strokeDasharray="1 0.5"
         />
@@ -69,7 +80,7 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
             y1="0" 
             x2="0" 
             y2={-personHeight} 
-            stroke="#000"
+            stroke="hsl(var(--foreground))"
             strokeWidth={personWidth * 1.5}
           />
           {/* Head */}
@@ -77,7 +88,7 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
             cx="0" 
             cy={-personHeight} 
             r={personWidth * 3}
-            fill="#000"
+            fill="hsl(var(--foreground))"
           />
         </g>
         
@@ -85,8 +96,8 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
         <g transform={`translate(${sunX},${sunY})`}>
           <circle 
             r={sunSize}
-            fill="#fbbf24" 
-            stroke="#fde68a"
+            fill={isDark ? 'hsl(47.9 95.8% 53.1%)' : 'hsl(47.9 95.8% 53.1%)'} 
+            stroke={isDark ? 'hsl(48 96.6% 88.8%)' : 'hsl(48 96.6% 88.8%)'} 
             strokeWidth={personWidth}
           />
           {/* Sun rays */}
@@ -97,7 +108,7 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
               y1="0"
               x2={Math.cos(rayAngle * Math.PI / 180) * rayLength}
               y2={Math.sin(rayAngle * Math.PI / 180) * rayLength}
-              stroke="#f59e0b"
+              stroke="hsl(48 96.6% 58.8%)"
               strokeWidth={personWidth}
             />
           ))}
@@ -110,7 +121,7 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
              ${shadowLength * scale + Math.cos((90 - angle) * Math.PI / 180) * 10} 
              ${groundY - Math.sin((90 - angle) * Math.PI / 180) * 10}`}
           fill="none"
-          stroke="#666"
+          stroke="hsl(var(--muted-foreground))"
           strokeWidth={personWidth}
           className="select-none"
         />
@@ -119,7 +130,7 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
         <text
           x={shadowLength * scale + 5}
           y={groundY - 5}
-          fill="#666"
+          fill="hsl(var(--muted-foreground))"
           fontSize={fontSize}
           fontWeight="bold"
           className="select-none"
@@ -128,13 +139,20 @@ function SunVisualization({ angle, height, shadowLength }: { angle: number; heig
         </text>
         
         {/* Measurements */}
-        <text x="2" y={groundY - fontSize} fill="#666" fontSize={fontSize} fontWeight="bold" className="select-none">
+        <text 
+          x="2" 
+          y={groundY - fontSize} 
+          fill="hsl(var(--muted-foreground))" 
+          fontSize={fontSize} 
+          fontWeight="bold" 
+          className="select-none"
+        >
           3m shadow
         </text>
         <text 
           x={shadowLength * scale + fontSize/2} 
           y={groundY - personHeight/2} 
-          fill="#666" 
+          fill="hsl(var(--muted-foreground))" 
           fontSize={fontSize}
           fontWeight="bold" 
           className="select-none"
@@ -182,7 +200,7 @@ export default function SliderInputQuestion({
       </div>
       
       {question.scenario && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="mb-4 p-3 bg-muted rounded-lg text-muted-foreground">
           {question.scenario}
         </div>
       )}
@@ -191,7 +209,7 @@ export default function SliderInputQuestion({
 
       <div className="flex flex-col items-center space-y-4">
         <div className="w-full flex items-center space-x-4">
-          <span className="text-sm">{question.min}{question.unit}</span>
+          <span className="text-sm text-foreground">{question.min}{question.unit}</span>
           <input
             type="range"
             min={question.min}
@@ -199,19 +217,19 @@ export default function SliderInputQuestion({
             value={value}
             onChange={handleChange}
             disabled={hasSubmitted}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer disabled:opacity-50"
           />
-          <span className="text-sm">{question.max}{question.unit}</span>
+          <span className="text-sm text-foreground">{question.max}{question.unit}</span>
         </div>
 
-        <div className="text-lg font-semibold mb-4">
+        <div className="text-lg font-semibold mb-4 text-foreground">
           Selected value: {value}{question.unit}
         </div>
 
         {!hasSubmitted && (
           <button
             onClick={handleSubmit}
-            className="px-6 py-3 bg-primary text-white rounded-full font-medium hover:opacity-90 active:scale-95 transition-all"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:opacity-90 active:scale-95 transition-all"
           >
             Check Answer
           </button>
@@ -219,17 +237,21 @@ export default function SliderInputQuestion({
 
         {hasSubmitted && (
           <>
-            <div className={`mt-4 p-3 rounded-lg ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            <div className={`mt-4 p-3 rounded-lg ${
+              isCorrect 
+                ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-100' 
+                : 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-100'
+            }`}>
               {isCorrect ? 'Correct!' : `The correct answer was ${question.correctAnswer}${question.unit}`}
               {question.explanation && (
-                <div className="mt-2 text-gray-700">
+                <div className="mt-2 text-sm text-muted-foreground dark:text-muted-foreground/90">
                   {question.explanation}
                 </div>
               )}
             </div>
             <button
               onClick={onNext}
-              className="mt-4 px-6 py-3 bg-primary text-white rounded-full font-medium hover:opacity-90 active:scale-95 transition-all"
+              className="mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:opacity-90 active:scale-95 transition-all"
             >
               Next Question
             </button>

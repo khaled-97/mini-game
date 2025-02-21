@@ -6,6 +6,8 @@ import { isRichContent } from '@/utils/questionContent'
 import RichContent from '../RichContent'
 import { soundManager } from '@/utils/soundManager'
 import { createShuffledPairs } from '@/utils/shuffleArray'
+import { useTheme } from 'next-themes'
+import { cn } from '@/lib/utils'
 
 interface Props {
   question: LineMatchQuestionType
@@ -26,7 +28,13 @@ interface Point {
 }
 
 export default function LineMatchQuestion({ question, onAnswer, onNext }: Props) {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [connections, setConnections] = useState<Connection[]>([])
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   const [activeConnection, setActiveConnection] = useState<{ from: number } | null>(null)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
@@ -75,9 +83,13 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
       ctx.beginPath()
       ctx.moveTo(startX, startY)
       ctx.lineTo(endX, endY)
+      // Theme-aware colors
+      const isDark = mounted && resolvedTheme === 'dark'
       ctx.strokeStyle = hasSubmitted
-        ? isConnectionCorrect(connection) ? '#22c55e' : '#ef4444'
-        : '#6366f1'
+        ? isConnectionCorrect(connection) 
+          ? isDark ? '#22c55e' : '#15803d'  // green-600 : green-700
+          : isDark ? '#ef4444' : '#dc2626'   // red-500 : red-600
+        : isDark ? '#818cf8' : '#6366f1'     // indigo-400 : indigo-500
       ctx.lineWidth = 2
       ctx.stroke()
     })
@@ -98,7 +110,8 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
       ctx.beginPath()
       ctx.moveTo(startX, startY)
       ctx.lineTo(endX, endY)
-      ctx.strokeStyle = '#6366f1'
+      const isDark = mounted && resolvedTheme === 'dark'
+      ctx.strokeStyle = isDark ? '#818cf8' : '#6366f1'
       ctx.lineWidth = 2
       ctx.stroke()
     }
@@ -276,11 +289,13 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
               onTouchEnd={() => handleTouchEnd('left', index)}
               onClick={() => handleLeftItemClick(index)}
               disabled={hasSubmitted}
-              className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left touch-manipulation select-none
-                ${hasSubmitted ? 'cursor-default' : 'hover:border-primary hover:bg-primary/5 active:scale-[1.02]'}
-                ${activeConnection?.from === index ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-gray-200'}
-                disabled:cursor-default
-              `}
+              className={cn(
+                "w-full p-4 rounded-lg border-2 transition-all duration-200 text-left touch-manipulation select-none",
+                !hasSubmitted && "hover:border-primary hover:bg-primary/5 active:scale-[1.02]",
+                activeConnection?.from === index && "border-primary bg-primary/5 scale-[1.02]",
+                !activeConnection && "border-border",
+                "disabled:cursor-default dark:border-border"
+              )}
             >
               <RichContent content={item} />
             </motion.button>
@@ -299,11 +314,13 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
               onTouchEnd={() => handleTouchEnd('right', index)}
               onClick={() => handleRightItemClick(index)}
               disabled={hasSubmitted}
-              className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left touch-manipulation select-none
-                ${!hasSubmitted && activeConnection ? 'hover:border-primary hover:bg-primary/5 active:scale-[1.02]' : ''}
-                ${connections.some(c => c.to === index) || hoveredRightItem === index ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-gray-200'}
-                disabled:cursor-default
-              `}
+              className={cn(
+                "w-full p-4 rounded-lg border-2 transition-all duration-200 text-left touch-manipulation select-none",
+                !hasSubmitted && activeConnection && "hover:border-primary hover:bg-primary/5 active:scale-[1.02]",
+                (connections.some(c => c.to === index) || hoveredRightItem === index) && "border-primary bg-primary/5 scale-[1.02]",
+                !connections.some(c => c.to === index) && hoveredRightItem !== index && "border-border",
+                "disabled:cursor-default dark:border-border"
+              )}
             >
               <RichContent content={item} />
             </motion.button>
@@ -320,7 +337,7 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleSubmit}
-            className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-full font-medium"
+            className="w-full sm:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium"
           >
             Check Answer
           </motion.button>
@@ -332,7 +349,7 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onNext}
-          className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-full font-medium"
+            className="w-full sm:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium"
         >
           Next Question
         </motion.button>
@@ -343,9 +360,12 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-6 rounded-lg text-center ${
-            isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-          }`}
+          className={cn(
+            "p-6 rounded-lg text-center",
+            isCorrect 
+              ? "bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-100" 
+              : "bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-100"
+          )}
         >
           {isCorrect ? (
             <p>Correct! {question.explanation}</p>
@@ -366,7 +386,7 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
                 ))}
               </div>
               {question.explanation && (
-                <p className="mt-4 text-sm opacity-90">{question.explanation}</p>
+                <p className="mt-4 text-sm text-muted-foreground dark:text-muted-foreground/90">{question.explanation}</p>
               )}
             </div>
           )}

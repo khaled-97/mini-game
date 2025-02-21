@@ -105,7 +105,7 @@ export default function PracticeMode({ questions }: Props) {
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className={`text-xl font-medium ${streak > 0 ? 'text-green-500' : 'text-muted-foreground'}`}
+          className={`text-xl font-medium ${streak > 0 ? 'text-success/70' : 'text-muted-foreground'}`}
         >
           Streak: {streak} 🔥
         </motion.div>

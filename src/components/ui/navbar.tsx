@@ -31,35 +31,6 @@ export default function Navbar() {
             >
               Math Game
             </Link>
-            <div className="hidden md:flex items-center space-x-6">
-              <motion.div 
-                className="text-sm glass-effect px-3 py-1.5 rounded-full"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <span className="text-primary-light">Level</span>{' '}
-                <span className="font-medium text-primary">{level}</span>
-              </motion.div>
-              <motion.div 
-                className="text-sm glass-effect px-3 py-1.5 rounded-full"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <span className="text-primary-light">XP</span>{' '}
-                <span className="font-medium text-primary">{xp}</span>
-              </motion.div>
-              <motion.div 
-                className="text-sm glass-effect px-3 py-1.5 rounded-full"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <span className="text-primary-light">Streak</span>{' '}
-                <span className="font-medium text-primary">{streak}🔥</span>
-              </motion.div>
-            </div>
           </div>
 
           {/* Navigation links */}
@@ -102,35 +73,6 @@ export default function Navbar() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="flex justify-around py-2">
-          <motion.div 
-            className="text-sm"
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.1 }}
-          >
-            <span className="text-primary-light">Level</span>{' '}
-            <span className="font-medium text-primary">{level}</span>
-          </motion.div>
-          <motion.div 
-            className="text-sm"
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <span className="text-primary-light">XP</span>{' '}
-            <span className="font-medium text-primary">{xp}</span>
-          </motion.div>
-          <motion.div 
-            className="text-sm"
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <span className="text-primary-light">Streak</span>{' '}
-            <span className="font-medium text-primary">{streak}🔥</span>
-          </motion.div>
-        </div>
       </motion.div>
     </nav>
   )

@@ -36,7 +36,7 @@ export default function TopicDetailsPage({
           <h2 className="text-2xl font-bold text-primary mb-4">Topic Not Found</h2>
           <button
             onClick={() => router.push('/topics')}
-            className="px-6 py-3 bg-primary text-white rounded-full font-medium"
+            className="px-6 py-3 bg-primary text-black rounded-full font-medium"
           >
             Back to Topics
           </button>
