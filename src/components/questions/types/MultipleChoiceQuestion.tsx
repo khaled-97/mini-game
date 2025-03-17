@@ -104,8 +104,8 @@ export default function MultipleChoiceQuestion({ question, onAnswer, onNext, onS
             className={`p-4 rounded-lg border-2 text-left transition-all duration-200 touch-manipulation
               ${hasSubmitted ? 'cursor-default' : 'hover:border-primary hover:bg-primary/5'}
               ${selectedAnswers.has(getItemContent(option)) ? 'border-primary bg-primary/5' : 'border-gray-200'}
-              ${hasSubmitted && question.correctAnswers.includes(getItemContent(option)) ? 'border-green-500 bg-green-50' : ''}
-              ${hasSubmitted && selectedAnswers.has(getItemContent(option)) && !question.correctAnswers.includes(getItemContent(option)) ? 'border-red-500 bg-red-50' : ''}
+              ${hasSubmitted && question.correctAnswers.includes(getItemContent(option)) ? 'border-success bg-success-muted' : ''}
+              ${hasSubmitted && selectedAnswers.has(getItemContent(option)) && !question.correctAnswers.includes(getItemContent(option)) ? 'border-error bg-error-muted' : ''}
               disabled:cursor-default
             `}
           >
@@ -163,7 +163,7 @@ export default function MultipleChoiceQuestion({ question, onAnswer, onNext, onS
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className={`p-6 rounded-lg text-center ${
-            isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            isCorrect ? 'bg-success-muted text-success-emphasis' : 'bg-error-muted text-error-emphasis'
           }`}
         >
           {isCorrect ? (

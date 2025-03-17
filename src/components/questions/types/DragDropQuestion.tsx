@@ -136,8 +136,8 @@ function DropZone({
           hasSubmitted ? "cursor-default" : placedItem ? "cursor-pointer" : "cursor-copy",
           !hasSubmitted && !placedItem && "border-dashed border-muted-foreground/30",
           hasSubmitted && (isCorrect
-            ? "border-green-500 bg-green-100 dark:bg-green-950"
-            : "border-red-500 bg-red-100 dark:bg-red-950"
+            ? "border-success bg-success-muted"
+            : "border-error bg-error-muted"
           ),
           !hasSubmitted && (isOver
             ? "border-primary bg-primary/5"
@@ -332,7 +332,7 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
           {question.dropZones.map((zone, index) => {
             const correctItem = correctItemsMap[zone.id]
             return (
-              <div key={index} className="p-2 border rounded text-center bg-green-100 dark:bg-green-950 dark:text-green-100">
+              <div key={index} className="p-2 border rounded text-center bg-success-muted text-success-emphasis">
                 <RichContent content={correctItem} />
                 {zone.placeholder && (
                   <div className="mt-1 text-xs text-muted-foreground">{zone.placeholder}</div>
@@ -501,8 +501,8 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
           className={cn(
             "p-6 rounded-lg text-center",
             isCorrect
-              ? "bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-100"
-              : "bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-100"
+              ? "bg-success-muted text-success-emphasis border-success"
+              : "bg-error-muted text-error-emphasis border-error"
           )}
         >
           {isCorrect ? (
@@ -519,7 +519,7 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
                     return (
                       <div key={index} className="flex items-center justify-between gap-4 mb-2 p-2 rounded-lg bg-background">
                         <span className="font-medium">{zone.placeholder || `Position ${index + 1}`}:</span>
-                        <div className="border rounded p-2 bg-green-100 dark:bg-green-950 dark:text-green-100">
+                        <div className="border rounded p-2 bg-success-muted text-success-emphasis">
                           <RichContent content={correctItem} />
                         </div>
                       </div>

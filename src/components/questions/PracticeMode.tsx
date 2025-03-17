@@ -92,20 +92,20 @@ export default function PracticeMode({ questions }: Props) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto">
       {/* Score and Streak Display */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-4">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-2xl font-bold text-primary"
+          className="text-m font-bold text-primary"
         >
           Score: {score}
         </motion.div>
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className={`text-xl font-medium ${streak > 0 ? 'text-success/70' : 'text-muted-foreground'}`}
+          className={`text-m font-medium ${streak > 0 ? 'text-success/70' : 'text-muted-foreground'}`}
         >
           Streak: {streak} 🔥
         </motion.div>

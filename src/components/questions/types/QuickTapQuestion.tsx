@@ -136,8 +136,8 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
                 className={`p-4 rounded-xl border-2 transition-all duration-200 touch-manipulation select-none
                   ${!hasSubmitted ? 'hover:border-primary hover:bg-primary/5 active:bg-primary/10 active:scale-[0.98]' : ''}
                   ${!showResult && isItemTapped ? 'border-primary bg-primary/5' : 'border-gray-200'}
-                  ${showResult && item.isCorrect ? 'border-success/50 bg-success/20' : ''}
-                  ${showResult && !item.isCorrect && isItemTapped ? 'border-error/50 bg-error/15' : ''}
+                  ${showResult && item.isCorrect ? 'border-success bg-success-muted' : ''}
+                  ${showResult && !item.isCorrect && isItemTapped ? 'border-error bg-error-muted' : ''}
                   disabled:cursor-default focus:outline-none focus:ring-2 focus:ring-primary/50
                 `}
               >
@@ -148,7 +148,7 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className={` ${
-                        item.isCorrect ? 'text-success' : (isItemTapped ? 'text-error' : 'text-gray-400')
+                        item.isCorrect ? 'text-success-emphasis' : (isItemTapped ? 'text-error-emphasis' : 'text-gray-400')
                       }`}
                     >
                       {item.isCorrect ? ' ✓' : (isItemTapped ? ' ✗' : ' •')}
@@ -185,7 +185,7 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className={`p-6 rounded-lg text-center ${
-            isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            isCorrect ? 'bg-success-muted text-success-emphasis' : 'bg-error-muted text-error-emphasis'
           }`}
         >
           <h3 className="text-xl font-semibold mb-2">

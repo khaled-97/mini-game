@@ -239,8 +239,8 @@ export default function SliderInputQuestion({
           <>
             <div className={`mt-4 p-3 rounded-lg ${
               isCorrect 
-                ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-100' 
-                : 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-100'
+                ? 'bg-success-muted text-success-emphasis' 
+                : 'bg-error-muted text-error-emphasis'
             }`}>
               {isCorrect ? 'Correct!' : `The correct answer was ${question.correctAnswer}${question.unit}`}
               {question.explanation && (

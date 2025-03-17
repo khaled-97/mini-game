@@ -377,7 +377,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className={`p-6 rounded-lg text-center ${
-            isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            isCorrect ? 'bg-success-muted text-success-emphasis' : 'bg-error-muted text-error-emphasis'
           } shadow-md`}
         >
           {isCorrect ? (

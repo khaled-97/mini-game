@@ -123,7 +123,7 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
     // Plot user function
     if (userFunction) {
       try {
-        ctx.strokeStyle = hasSubmitted ? (isCorrect ? '#22c55e' : '#ef4444') : '#6366f1'
+        ctx.strokeStyle = hasSubmitted ? (isCorrect ? 'hsl(var(--success))' : 'hsl(var(--error))') : '#6366f1'
         ctx.lineWidth = 2
         ctx.beginPath()
 
@@ -272,8 +272,8 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
             placeholder="e.g., x^2 + 2*x + 1"
             className={`w-full p-4 rounded-lg border-2 transition-all duration-200
               ${!hasSubmitted ? 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2' : ''}
-              ${hasSubmitted && isCorrect ? 'border-green-500 bg-green-50' : ''}
-              ${hasSubmitted && !isCorrect ? 'border-red-500 bg-red-50' : ''}
+              ${hasSubmitted && isCorrect ? 'border-success bg-success-muted' : ''}
+              ${hasSubmitted && !isCorrect ? 'border-error bg-error-muted' : ''}
               disabled:cursor-not-allowed
             `}
           />
@@ -323,7 +323,7 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className={`p-6 rounded-lg text-center ${
-            isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            isCorrect ? 'bg-success-muted text-success-emphasis' : 'bg-error-muted text-error-emphasis'
           }`}
         >
           {isCorrect ? (

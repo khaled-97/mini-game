@@ -58,10 +58,20 @@ const config = {
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
+          muted: "hsl(var(--success-muted))",
+          emphasis: "hsl(var(--success-emphasis))",
         },
         error: {
           DEFAULT: "hsl(var(--error))",
           foreground: "hsl(var(--error-foreground))",
+          muted: "hsl(var(--error-muted))",
+          emphasis: "hsl(var(--error-emphasis))",
+        },
+        math: {
+          "correct-highlight": "hsl(var(--correct-highlight))",
+          "incorrect-highlight": "hsl(var(--incorrect-highlight))",
+          "success-glow": "hsl(var(--success-glow))",
+          "error-glow": "hsl(var(--error-glow))",
         },
       },
       borderRadius: {

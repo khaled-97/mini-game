@@ -274,8 +274,8 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
                 r="6"
                 fill={hasSubmitted
                   ? isCorrect
-                    ? isDark ? '#4ade80' : '#15803d'  // green-400 : green-700
-                    : isDark ? '#f87171' : '#dc2626'   // red-400 : red-600
+                    ? 'hsl(var(--success))'
+                    : 'hsl(var(--error))'
                   : 'hsl(var(--primary))'}
                 stroke={isDark ? 'hsl(var(--background))' : 'hsl(var(--background))'}
                 strokeWidth="2"
@@ -365,9 +365,9 @@ export default function GraphQuestion({ question, onAnswer, onNext, onSkip }: Pr
           animate={{ opacity: 1, y: 0 }}
           className={cn(
             "p-6 rounded-lg text-center select-none touch-manipulation",
-            isCorrect 
-              ? "bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-100" 
-              : "bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-100"
+            isCorrect
+              ? "bg-success-muted text-success-emphasis"
+              : "bg-error-muted text-error-emphasis"
           )}
         >
           {isCorrect ? (

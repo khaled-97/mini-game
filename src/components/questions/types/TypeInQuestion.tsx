@@ -3,6 +3,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { TypeInQuestion as TypeInQuestionType } from '@/types/question'
 import { soundManager } from '@/utils/soundManager'
+import NumPad from '@/components/ui/numPad'
 
 interface Props {
   question: TypeInQuestionType
@@ -182,8 +183,8 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
             disabled={hasSubmitted}
             placeholder={getPlaceholder(question)}
             className={`w-full p-5 rounded-xl border-2 transition-all duration-200 touch-manipulation text-lg
-              ${hasSubmitted && isCorrect ? 'border-green-500 bg-green-50 scale-[1.02]' : ''}
-              ${hasSubmitted && !isCorrect ? 'border-red-500 bg-red-50 scale-[1.02]' : ''}
+              ${hasSubmitted && isCorrect ? 'border-success bg-success-muted scale-[1.02]' : ''}
+              ${hasSubmitted && !isCorrect ? 'border-error bg-error-muted scale-[1.02]' : ''}
               ${!hasSubmitted ? 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 active:border-primary active:bg-primary/5' : ''}
               disabled:cursor-not-allowed focus:outline-none
             `}
@@ -239,7 +240,7 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className={`p-6 rounded-lg select-none touch-manipulation ${
-            isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            isCorrect ? 'bg-success-muted text-success-emphasis' : 'bg-error-muted text-error-emphasis'
           }`}
         >
           {isCorrect ? (
@@ -253,6 +254,21 @@ export default function TypeInQuestion({ question, onAnswer, onNext }: Props) {
             </div>
           )}
         </motion.div>
+      )}
+
+      {/* Number Pad for numerical input */}
+      {question.validation?.type === 'number' && (
+        <NumPad
+          onNumber={(num: number) => setAnswer(prev => prev + num)}
+          onBackspace={() => setAnswer(prev => prev.slice(0, -1))}
+          onDecimal={() => {
+            if (!answer.includes('.')) {
+              setAnswer(prev => prev + '.')
+            }
+          }}
+          hasSubmitted={hasSubmitted}
+          showDecimal={!question.validation.integer}
+        />
       )}
 
       {/* Instructions */}
