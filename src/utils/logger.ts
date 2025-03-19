@@ -5,7 +5,7 @@ interface LogEntry {
   level: LogLevel
   component: string
   message: string
-  details?: any
+  details?: unknown
 }
 
 class Logger {
@@ -26,7 +26,7 @@ class Logger {
     level: LogLevel,
     component: string,
     message: string,
-    details?: any
+    details?: unknown
   ): LogEntry {
     return {
       timestamp: new Date().toISOString(),
@@ -63,19 +63,19 @@ class Logger {
     }
   }
 
-  debug(component: string, message: string, details?: any) {
+  debug(component: string, message: string, details?: unknown) {
     this.addLog(this.createLogEntry('debug', component, message, details))
   }
 
-  info(component: string, message: string, details?: any) {
+  info(component: string, message: string, details?: unknown) {
     this.addLog(this.createLogEntry('info', component, message, details))
   }
 
-  warn(component: string, message: string, details?: any) {
+  warn(component: string, message: string, details?: unknown) {
     this.addLog(this.createLogEntry('warn', component, message, details))
   }
 
-  error(component: string, message: string, details?: any) {
+  error(component: string, message: string, details?: unknown) {
     this.addLog(this.createLogEntry('error', component, message, details))
   }
 

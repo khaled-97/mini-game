@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { GraphPlotQuestion as GraphPlotQuestionType } from '@/types/question'
 import { soundManager } from '@/utils/soundManager'
 import { 
-  normalizeMathExpression, 
   evaluateMathExpression, 
   formatMathExpression 
 } from '@/utils/mathExpressions'
@@ -23,10 +22,9 @@ interface Point {
 
 export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props) {
   const [userFunction, setUserFunction] = useState('')
-  const [points, setPoints] = useState<Point[]>([])
+  const [points] = useState<Point[]>([])
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Convert graph coordinates to canvas coordinates
@@ -140,22 +138,21 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
                 ctx.lineTo(x, y)
               }
             }
-          } catch (error) {
-            // Skip points that cause evaluation errors
-            continue
+          } catch (err) {
+            console.error('Error plotting function:', err)
           }
         }
         ctx.stroke()
-      } catch (error) {
-        console.error('Error plotting function:', error)
+      } catch (err) {
+        console.error('Error plotting function:', err)
       }
     }
 
     // Plot points
-    points.forEach((point, index) => {
-      const { x, y } = toCanvasCoords(point, canvas)
+    points.forEach(({ x, y }) => {
+      const coords = toCanvasCoords({ x, y }, canvas)
       ctx.beginPath()
-      ctx.arc(x, y, 4, 0, Math.PI * 2)
+      ctx.arc(coords.x, coords.y, 4, 0, Math.PI * 2)
       ctx.fillStyle = '#6366f1'
       ctx.fill()
     })
@@ -195,14 +192,14 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
         const y = evaluateMathExpression(func, x)
         return typeof y === 'number' && !isNaN(y)
       })
-    } catch (error) {
+    } catch (err) {
+      console.error('Error validating function:', err)
       return false
     }
   }, [])
 
   const handleSubmit = useCallback(() => {
     if (!validateFunction(userFunction)) {
-      setError('Please enter a valid function')
       return
     }
 
@@ -225,14 +222,13 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
           return Math.abs(userY - correctY) < 0.1
         })
       }
-    } catch (error) {
-      setError('Error evaluating function')
+    } catch (err) {
+      console.error('Error validating function:', err)
       return
     }
 
     setIsCorrect(correct)
     setHasSubmitted(true)
-    setError(null)
     onAnswer({
       correct,
       answer: [userFunction]
@@ -277,9 +273,6 @@ export default function GraphPlotQuestion({ question, onAnswer, onNext }: Props)
               disabled:cursor-not-allowed
             `}
           />
-          {error && (
-            <p className="mt-2 text-sm text-red-500">{error}</p>
-          )}
         </div>
         {!hasSubmitted && (
           <motion.button

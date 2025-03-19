@@ -1,8 +1,7 @@
 'use client'
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { LineMatchQuestion as LineMatchQuestionType } from '@/types/question'
-import { isRichContent } from '@/utils/questionContent'
 import RichContent from '../RichContent'
 import { soundManager } from '@/utils/soundManager'
 import { createShuffledPairs } from '@/utils/shuffleArray'
@@ -31,10 +30,6 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [connections, setConnections] = useState<Connection[]>([])
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
   const [activeConnection, setActiveConnection] = useState<{ from: number } | null>(null)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
@@ -48,6 +43,16 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
   const [shuffledState] = useState(() => 
     createShuffledPairs(question.rightItems, question.correctConnections)
   )
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isConnectionCorrect = useCallback((connection: Connection) => {
+    return shuffledState.shuffledConnections.some(correct => 
+      correct.from === connection.from && correct.to === connection.to
+    )
+  }, [shuffledState.shuffledConnections])
 
   // Draw connections
   useEffect(() => {
@@ -115,7 +120,7 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
       ctx.lineWidth = 2
       ctx.stroke()
     }
-  }, [connections, activeConnection, mousePos, hasSubmitted])
+  }, [connections, activeConnection, mousePos, hasSubmitted, mounted, resolvedTheme, isConnectionCorrect])
 
   // Handle window resize
   useEffect(() => {
@@ -171,12 +176,6 @@ export default function LineMatchQuestion({ question, onAnswer, onNext }: Props)
       }
     }
   }, [activeConnection, hoveredRightItem])
-
-  const isConnectionCorrect = useCallback((connection: Connection) => {
-    return shuffledState.shuffledConnections.some(correct => 
-      correct.from === connection.from && correct.to === connection.to
-    )
-  }, [shuffledState.shuffledConnections])
 
   const handleLeftItemClick = useCallback((index: number) => {
     if (hasSubmitted) return

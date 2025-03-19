@@ -539,10 +539,7 @@ export default function DragDropQuestion({ question, onAnswer, onNext, onSkip }:
 }
 
 // Helper function for keyboard navigation
-function sortableKeyboardCoordinates(
-  event: KeyboardEvent,
-  context: any
-) {
+function sortableKeyboardCoordinates(event: KeyboardEvent) {
   const target = event.target as HTMLElement;
   const rect = target.getBoundingClientRect();
 

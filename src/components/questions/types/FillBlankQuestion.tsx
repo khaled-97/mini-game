@@ -130,7 +130,7 @@ export default function FillBlankQuestion({ question, onAnswer, onNext }: Props)
     }
 
     return true
-  }, [])
+  }, [question.blanks])
 
   const handleSubmit = useCallback(() => {
     // Check if all blanks are filled
