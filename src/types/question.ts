@@ -157,7 +157,7 @@ export type Question =
 export interface QuestionResponse {
   questionId: string
   correct: boolean
-  userAnswer: any
+  userAnswer: string[] | number[] | { x: number; y: number }[]
   timeTaken: number
   points: number
   skipped?: boolean

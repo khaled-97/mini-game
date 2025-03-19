@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { MultipleChoiceQuestion as MultipleChoiceQuestionType } from '@/types/question'
 import { isRichContent, QuestionItem } from '@/utils/questionContent'
 import RichContent from '../RichContent'

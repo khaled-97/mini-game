@@ -19,45 +19,6 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
   const [isCorrect, setIsCorrect] = useState(false)
   const [tappedItems, setTappedItems] = useState<Set<number>>(new Set())
 
-  // Timer
-  useEffect(() => {
-    if (hasSubmitted || timeLeft <= 0) return
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          handleSubmit()
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [timeLeft, hasSubmitted])
-
-  // Handle item tap
-  const handleTap = useCallback((index: number) => {
-    if (hasSubmitted || timeLeft <= 0) return
-
-    setTappedItems(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(index)) {
-        newSet.delete(index)
-      } else {
-        newSet.add(index)
-      }
-      return newSet
-    })
-    
-    soundManager.play('click')
-
-    // Vibrate on mobile devices
-    if (window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(50)
-    }
-  }, [hasSubmitted, timeLeft])
-
   const handleSubmit = useCallback(() => {
     if (hasSubmitted) return
 
@@ -87,6 +48,45 @@ export default function QuickTapQuestion({ question, onAnswer, onNext }: Props) 
       window.navigator.vibrate(correct ? [100] : [50, 50, 50])
     }
   }, [question, tappedItems, hasSubmitted, onAnswer])
+
+  // Timer
+  useEffect(() => {
+    if (hasSubmitted || timeLeft <= 0) return
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          handleSubmit()
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [timeLeft, hasSubmitted, handleSubmit])
+
+  // Handle item tap
+  const handleTap = useCallback((index: number) => {
+    if (hasSubmitted || timeLeft <= 0) return
+
+    setTappedItems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
+      }
+      return newSet
+    })
+    
+    soundManager.play('click')
+
+    // Vibrate on mobile devices
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50)
+    }
+  }, [hasSubmitted, timeLeft])
 
   return (
     <div className="space-y-8">

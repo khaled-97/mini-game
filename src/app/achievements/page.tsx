@@ -1,6 +1,5 @@
 'use client'
 import { motion } from 'framer-motion'
-import useGameStore from '@/store/useGameStore'
 
 // Sample achievements data (in a real app, this would come from the database)
 const achievements = [
@@ -52,8 +51,6 @@ const achievements = [
 ]
 
 export default function AchievementsPage() {
-  const xp = useGameStore((state) => state.xp)
-  const level = useGameStore((state) => state.level)
 
   const container = {
     hidden: { opacity: 0 },

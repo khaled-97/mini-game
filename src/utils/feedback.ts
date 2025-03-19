@@ -19,7 +19,7 @@ class FeedbackManager {
     return FeedbackManager.instance
   }
 
-  handleAnswer(isCorrect: boolean, component: string, details?: any, options: FeedbackOptions = {}) {
+  handleAnswer(isCorrect: boolean, component: string, details?: unknown, options: FeedbackOptions = {}) {
     const {
       showConfetti = true,
       playSound = true,

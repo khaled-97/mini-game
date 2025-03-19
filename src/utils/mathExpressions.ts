@@ -33,7 +33,7 @@ export function validateMathExpression(expr: string): boolean {
     // Remove special characters that we handle
     const cleanExpr = expr
       .replace(/[²³]/g, '2') // Replace superscripts with regular numbers
-      .replace(/\^/g, '**') // Replace ^ with ** for power operations
+      .replace(/\^/g, '**') // Replace ^ with power operations
       .replace(/[×·]/g, '*') // Replace multiplication symbols
       .replace(/÷/g, '/') // Replace division symbol
       .replace(/−/g, '-') // Replace minus sign
@@ -45,7 +45,7 @@ export function validateMathExpression(expr: string): boolean {
     // This will throw if the expression is invalid
     Function(`"use strict"; return ${cleanExpr}`)()
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -85,7 +85,7 @@ export function evaluateMathExpression(expr: string, x?: number): number {
     } else {
       return Function(`"use strict"; return ${cleanExpr}`)()
     }
-  } catch (e) {
+  } catch {
     throw new Error(`Invalid math expression: ${expr}`)
   }
 }

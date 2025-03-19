@@ -8,6 +8,8 @@ import useGameStore from '@/store/useGameStore'
 import { soundManager } from '@/utils/soundManager'
 import {questions} from '@/data/questions'
 import { useParams } from 'next/navigation'
+import LessonComplete from '@/components/lessons/LessonComplete'
+import { LoadingStates, LoadingOverlay } from '@/components/ui/loading'
 
 // Helper function to get questions for a specific lesson
 const getLessonQuestions = (lessonId: string): Question[] => {
@@ -28,39 +30,22 @@ const getLessonQuestions = (lessonId: string): Question[] => {
   )
 }
 
-import LessonComplete from '@/components/lessons/LessonComplete'
-import Loading, { LoadingStates, LoadingOverlay } from '@/components/ui/loading'
-
 export default function LessonPage() {
   const router = useRouter()
   const params = useParams()
   const lessonId = params?.lessonId as string
   
-  // Get questions and handle invalid lesson ID
-  const lessonQuestions = getLessonQuestions(lessonId)
-  if (!lessonId || lessonQuestions.length === 0) {
-    return (
-      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-primary mb-4">Lesson Not Found</h2>
-          <p className="text-muted-foreground mb-8">This lesson doesn't exist or has no questions.</p>
-          <button
-            onClick={() => router.push('/topics')}
-            className="px-6 py-3 bg-primary text-white rounded-full font-medium"
-          >
-            Back to Topics
-          </button>
-        </div>
-      </div>
-    )
-  }
-
+  // Initialize all hooks at the top level
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [responses, setResponses] = useState<QuestionResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [startTime, setStartTime] = useState(Date.now())
+
+  const addXP = useGameStore((state) => state.addXP)
+  const incrementStreak = useGameStore((state) => state.incrementStreak)
+  const resetStreak = useGameStore((state) => state.resetStreak)
 
   useEffect(() => {
     // Reset start time when question changes
@@ -75,10 +60,25 @@ export default function LessonPage() {
 
     return () => clearTimeout(timer)
   }, [])
-
-  const addXP = useGameStore((state) => state.addXP)
-  const incrementStreak = useGameStore((state) => state.incrementStreak)
-  const resetStreak = useGameStore((state) => state.resetStreak)
+  
+  // Get questions and handle invalid lesson ID
+  const lessonQuestions = getLessonQuestions(lessonId)
+  if (!lessonId || lessonQuestions.length === 0) {
+    return (
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-primary mb-4">Lesson Not Found</h2>
+          <p className="text-muted-foreground mb-8">This lesson does not exist or has no questions.</p>
+          <button
+            onClick={() => router.push('/topics')}
+            className="px-6 py-3 bg-primary text-white rounded-full font-medium"
+          >
+            Back to Topics
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const handleQuestionAnswer = (answer: { correct: boolean; answer: string[] }) => {
     const currentQuestion = lessonQuestions[currentQuestionIndex]

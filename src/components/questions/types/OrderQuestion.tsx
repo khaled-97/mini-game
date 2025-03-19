@@ -66,6 +66,7 @@ const Item = React.memo(({ content, index }: {
     )}
   </div>
 ));
+Item.displayName = 'Item';
 
 function SortableItem({ id, content, index, isActive, disabled }: SortableItemProps) {
   const {
@@ -297,7 +298,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
           </div>
         )}
         <p className="text-muted-foreground">
-          Drag and drop the items to put them in the correct order
+          Drag items to their correct positions. You cant drop an item between other items.
         </p>
       </motion.div>
 
@@ -384,7 +385,7 @@ export default function OrderQuestion({ question, onAnswer, onNext }: Props) {
             <p>Correct! {question.explanation}</p>
           ) : (
             <div>
-              <p className="mb-4">Not quite. Here's the correct order:</p>
+              <p className="mb-4">Not quite. Heres the correct order:</p>
               <div className="space-y-2">
                 {isStepOrder && question.steps ? (
                   // Step order question

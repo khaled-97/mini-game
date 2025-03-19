@@ -1,7 +1,6 @@
 'use client'
-import { useState, useCallback } from 'react'
 import { Question } from '@/types/question'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { logger } from '@/utils/logger'
 
 // Import all question type components
@@ -124,9 +123,10 @@ export default function QuestionComponent({ question, onAnswer, onNext, onSkip }
           />
         )
       default:
+        const unknownQuestion = question as Question;
         return (
           <div className="text-center text-red-500">
-            Unknown question type: {(question as any).type}
+            Unknown question type: {unknownQuestion.type}
           </div>
         )
     }
